@@ -1,4 +1,4 @@
-;;; A hydra for modal text editing.
+;;; A hydra for modal text editing.          -*- lexical-binding: t; -*-
 
 (defun hydra-modal--call-body-conditionally ()
   "Call the modal hydra if it hasn't exited properly using the

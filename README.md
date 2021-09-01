@@ -1,2 +1,0 @@
-# my-emacs
-emacs configuration
