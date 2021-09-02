@@ -12,6 +12,8 @@
   "Font for coding situations."
   :group 'my
   :type 'string)
+(defvar victor-mono-ligatures
+  '("</" "</>" "/>" "~-" "-~" "~@" "<~" "<~>" "<~~" "~>" "~~" "~~>" ">=" "<=" "<!--" "##" "###" "####" "|-" "-|" "|->" "<-|" ">-|" "|-<" "|=" "|=>" ">-" "<-" "<--" "-->" "->" "-<" ">->" ">>-" "<<-" "<->" "->>" "-<<" "<-<" "==>" "=>" "=/=" "!==" "!=" "<==" ">>=" "=>>" ">=>" "<=>" "<=<" "<<=" "=<<" ".-" ".=" "=:=" "=!=" "==" "===" "::" ":=" ":>" ":<" ">:" ";;" "<|" "<|>" "|>" "<>" "<$" "<$>" "$>" "<+" "<+>" "+>" "?=" "/=" "/==" "/\\\\" "\\\\/" "__" "&&" "++" "+++") "In writing and typography, a ligature occurs where two or more graphemes or letters are joined to form a single glyph. These are the graphemes supported by Victor Mono font")
 
 ;; see https://zzamboni.org/post/beautifying-org-mode-in-emacs/
 (defcustom my-variable-pitch-font  "Source Sans Pro"
@@ -61,9 +63,15 @@ Defaults to t."
     (set-face-attribute 'default nil :font my-font :height 120)
     (set-face-attribute 'fixed-pitch nil :font my-font :height 120)
 
-    ;; use icon from all-the-icons for major mode instead of boring string
-    ;; achieved by changing value of mode-name
+    ;; enable ligatures
+    (use-package ligature
+      :straight (ligature :type git :host github :repo "mickeynp/ligature.el")
+      :config
+      (ligature-set-ligatures 'prog-mode victor-mono-ligatures)
+      :hook (prog-mode . ligature-mode)
+      )
     )
+  
   (unless (eq my-theme 'default)
     (load-theme my-theme t)))
 
@@ -107,6 +115,7 @@ Defaults to t."
 ;; ensure line number and column number modes are enabled
 (line-number-mode +1)
 (column-number-mode +1)
+(setq mode-line-percent-position '(-4 " %p")) ; give some space between colnumber and percent indicator
 (defun simple-modeline-position ()
   "Displays the current cursor position in the mode-line.
 If line and column enabled, display LNUM:CNUM. If only linenum enabled, display L<num>. If only colnum enabled
@@ -114,17 +123,17 @@ display C<num>. C<num> is ether 0 based on 1 based
 Also display percentage of total and if active region, then stats about region
 "
   `((line-number-mode
-    ((column-number-mode
-      (column-number-indicator-zero-based
-       (8 " %l:%c")
-       (8 " %l:%C"))
-      (5 " L%l")))
-    ((column-number-mode
-      (column-number-indicator-zero-based
-       (5 " C%c")
-       (5 " C%C")))))
-    (-4 " %p") 		        ; display percentage
-    ,(if (region-active-p) 	; display region stats
+     ((column-number-mode
+       (column-number-indicator-zero-based
+	(8 " %l:%c")
+	(8 " %l:%C"))
+       (5 " L%l")))
+     ((column-number-mode
+       (column-number-indicator-zero-based
+	(5 " C%c")
+	(5 " C%C")))))
+    mode-line-percent-position
+    ,(if (region-active-p)		; display region stats
          (propertize (format " +%s"
                              (apply #'+ (mapcar
 					 (lambda (pos)
