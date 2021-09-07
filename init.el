@@ -518,8 +518,7 @@ disable itself. Sad."
  epa-file-name-regexp "\\.\\(gpg\\|asc\\)$"
  epa-pinentry-mode 'loopback	   ; use minibuffer reading passphrase
  epg-pinentry-mode 'loopback
- epa-file-encrypt-to '("milind.b.kamble@gmail.com")
- )
+ epa-file-encrypt-to '("milind.b.kamble@gmail.com"))
 (epa-file-name-regexp-update)
 
 ;;*** `bind-key' : better keybinding API
@@ -590,8 +589,7 @@ disable itself. Sad."
 (use-package selectrum
   :diminish "sel"
   :init
-  (selectrum-mode +1)
-  )
+  (selectrum-mode +1))
 
 ;;*** `company' for completion 
 (progn
@@ -647,7 +645,7 @@ In that case, insert the number."
 ;;*** `consult' completion framework 
 ;; consult, marginalia, embark work together for providing completions
 
-(load-file (concat user-emacs-directory "lisp/my-consult-config.el"))
+(load "my-consult-config")
 
 ;;*** `marginalia' enable richer annotations including richer annotation of
 ;; completion candidates
@@ -702,8 +700,7 @@ In that case, insert the number."
   :custom
   (prescient-sort-length-enable nil)
   :config
-  (prescient-persist-mode 1)
-  )
+  (prescient-persist-mode 1))
 
 (use-package selectrum-prescient
   :init
@@ -731,10 +728,13 @@ In that case, insert the number."
   (blackout 'outshine-mode (concat " " (all-the-icons-material "format_align_left")))
   (blackout 'outline-minor-mode)
   (setq outshine-startup-folded-p t)
-  ;; disable other minor modes such as lispy from taking our preferred binding to shift-tab (aka backtab)
-  :bind*
-  ("<backtab>" . #'outshine-cycle-buffer)
-  ("s-/ <backtab>" . #'outshine-cycle-buffer) ; enable cycle-buffer from anywhere
+  ;; using bind causes modes such as lispy (when visiting elisp files)   to override outshine-cycle-buffer when we are on a legit header line
+  ;; using bind* on the other hand causes outshine-cycle-buffer to override org-mode bindings when visiting org files.
+  ;; need to find a robust solution to tackle outshine and lispy conflicts
+  ;; :bind*
+  ;; ("<backtab>" . #'outshine-cycle-buffer)
+  ;; ("s-/ <backtab>" . #'outshine-cycle-buffer)
+					; enable cycle-buffer from anywhere
   :hook
   ;; enable outline-minor-mode for *ALL* programming buffers 
   (prog-mode . outshine-mode))
@@ -757,6 +757,13 @@ In that case, insert the number."
   :init (global-undo-tree-mode))
 
 
+;;*** `hercules' is a which-key based hydra
+(use-package hercules
+  :commands
+  (hercules-def))
+;; (load "my-hercules")
+;;*** `free-keys' shows unbound keys
+(use-package free-keys) 
 ;;** Themes
 ;;*** install `poet-theme'
 (use-package poet-theme
@@ -765,6 +772,15 @@ In that case, insert the number."
 ;;*** `page-break-lines' - render form-feed chars as horz lines
 (use-package page-break-lines)
 
+
+;;*** `markdown-mode'
+(use-package markdown-mode
+  :ensure t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :init (setq markdown-command "multimarkdown"))
 
 ;;*** prettify symbols
 (add-hook 'prog-mode-hook #'prettify-symbols-mode)
@@ -843,8 +859,23 @@ In that case, insert the number."
 
 ;;*** `org-bullets'
 ;; see https://mstempl.netlify.app/post/beautify-org-mode/ for techniques to beautify org rendering
-(use-package org-bullets
-  :hook (org-mode . org-bullets-mode))
+;; (use-package org-bullets
+;;   :hook (org-mode . org-bullets-mode))
+
+;;*** `org-superstar' prettify headings and lists
+;; This package is a direct descendant of ‘org-bullets’, with most of the code base completely rewritten
+(use-package org-superstar
+  :config
+  (setq org-superstar-special-todo-items t)
+  :hook (org-mode . my-org-superstar-lw-mode))
+(defun my-org-superstar-lw-mode ()
+  "Start Org Superstar differently depending on the number of lists items."
+  (let ((list-items
+         (count-matches "^[ \t]*?\\([+-]\\|[ \t]\\*\\)"
+                        (point-min) (point-max))))
+    (unless (< list-items 100)
+      (org-superstar-toggle-lightweight-lists)))
+  (org-superstar-mode))
 
 ;;*** `ob-sync'
 (use-package ob-async
@@ -915,8 +946,8 @@ In that case, insert the number."
 (use-package hydra
   :defer 2.5)
 
-(load-file (concat user-emacs-directory "lisp/hydra-modal.el"))
-(load-file (concat user-emacs-directory "lisp/my-hydras.el"))
+(load "hydra-modal")
+(load "my-hydras")
 
 ;;*** unlock keepassxc DB from emacs using dbus
 ;; read file content into a string http://ergoemacs.org/emacs/elisp_read_file_content.html
@@ -957,101 +988,7 @@ In that case, insert the number."
     (cl-assert kdbx-sec nil "Keepass security filepath not found in strong-box")
     (dbus-call-method :session "org.keepassxc.KeePassXC.MainWindow"
 		      "/keepassxc" "org.keepassxc.MainWindow" "openDatabase"
-		      kdbx pwd kdbx-sec
-		      )
-    ))
-;; Export to Markdown with syntax highlighting
-;; (use-package ox-gfm
-;;   :straight t
-;;   :defer t)
-
-;; Package used to create presentations using reveal.js.
-;; Requires the installation of reveaj.js.
-;; (use-package ox-reveal
-;;   :straight t
-;;   :defer t
-;;   :config
-;;   (setq org-reveal-root "file:///home/spvk/notes/presentations/reveal.js"))
-
-;; (use-package gnuplot
-;;   :straight t
-;;   :defer t)
-
-;; (use-package ess
-;;   :straight t
-;;   :defer t)
-
-;; (use-package markdown-toc
-;;   :straight t
-;;   :defer t)
-
-;; (use-package tex
-;;   :straight auctex
-;;   :defer t
-;;   :hook (TeX-mode . (lambda ()
-;;                       (company-mode)))
-;;   :config
-;;   (setq TeX-auto-save t)
-;;   (setq TeX-parse-self t))
-
-;; (use-package company-auctex
-;;   :straight t
-;;   :after (auctex company)
-;;   :config
-;;   (company-auctex-init))
-
-;; (use-package ivy-bibtex
-;;   :straight t
-;;   :after auctex
-;;   :config
-;;   (setq bibtex-completion-bibliography
-;;         '("~/projects/tex/test.bib")))
-
-;; (use-package kaolin-themes
-;;   :straight t)
-
-;; (use-package doom-themes
-;;   :straight t)
-
-;; (defun toggle-light-dark-theme--custom-choices (theme)
-;;   "Used to create the choice widget options of the
-;; toggle-light-dark-theme custom variables."
-;;   `(const :tag ,(symbol-name theme) ,theme))
-
-;; (defcustom toggle-light-dark-theme-light-theme 'doom-acario-light
-;;   "The light theme that the function toggle-light-dark-theme will use."
-;;   :type `(choice ,@(mapcar #'toggle-light-dark-theme--custom-choices
-;;                            (custom-available-themes))))
-
-;; (defcustom toggle-light-dark-theme-dark-theme 'kaolin-galaxy
-;;   "The dark theme that the function toggle-light-dark-theme will use."
-;;   :type `(choice ,@(mapcar #'toggle-light-dark-theme--custom-choices
-;;                            (custom-available-themes))))
-
-;; (defvar toggle-light-dark-theme--current-theme 'dark)
-
-;; (defun toggle-light-dark-theme ()
-;;   "Disables all custom enabled themes and then toggles between a
-;; light and a dark theme, which are the values of the variables
-;; toggle-light-dark-theme-light-theme and toggle-light-dark-theme-dark-theme."
-;;   (interactive)
-;;   (mapc #'disable-theme custom-enabled-themes)
-;;   (powerline-reset)
-;;   (cond ((eq toggle-light-dark-theme--current-theme 'light)
-;;          (load-theme toggle-light-dark-theme-dark-theme)
-;;          (setq toggle-light-dark-theme--current-theme 'dark))
-;;         (t
-;;          (load-theme toggle-light-dark-theme-light-theme)
-;;          (setq toggle-light-dark-theme--current-theme 'light))))
-
-;; (define-key-after
-;;   global-map
-;;   [menu-bar options customize customize-toggle-light-dark-theme]
-;;   '("Toggle light and dark theme" . toggle-light-dark-theme)
-;;   'customize-themes)
-
-;; (global-set-key (kbd "<f5>") #'toggle-light-dark-theme)
-
+		      kdbx pwd kdbx-sec)))
 
 ;;*** resize your windows to the `golden-ratio'
 ;; (http://pragmaticemacs.com/emacs/resize-your-windows-to-the-golden-ratio/)
@@ -1074,67 +1011,25 @@ In that case, insert the number."
 
 
 ;;*** Global
-;;*** Ivy, swiper, counsel
-;; (use-package ivy
-;;   :straight t
-;;   :diminish ivy-mode
-;;   :defer 0.9
-;;   :config
-;;   (ivy-mode))
-
-;; (use-package swiper
-;;   :straight t
-;;   :after ivy
-;;   :bind (("C-s" . swiper)
-;; 	 ("C-M-s" . swiper-thing-at-point)))
-
-;; (use-package counsel
-;;   :straight t
-;;   :after ivy
-;;   :diminish counsel-mode
-;;   :config
-;;   (counsel-mode))
-
-;; (use-package ivy-avy
-;;   :straight t
-;;   :after (ivy avy))
-
-;; (use-package ivy-prescient
-;;   :straight t
-;;   :after counsel
-;;   :config
-;;   (ivy-prescient-mode)
-;;   (setq ivy-initial-inputs-alist ivy-prescient--old-initial-inputs-alist))
-
-;; (use-package visual-regexp-steroids
-;;   :straight t
-;;   :defer t)
-
 (use-package popup-kill-ring
   :bind (("M-y" . popup-kill-ring)))
 
 (use-package expand-region
   :straight t
+  :demand t
   :bind (("C-=" . er/expand-region)))
 
-;; (display-time-mode t)
-
-;; (use-package spaceline
-;;   :straight t
-;;   :defer 2.2
-;;   :config
-;;   (require 'spaceline-config)
-;;   (setq powerline-default-separator 'arrow)
-;;   (setq spaceline-line-column-p nil)
-;;   (setq spaceline-buffer-size nil)
-;;   (setq spaceline-workspace-numbers-unicode t)
-;;   (setq spaceline-buffer-encoding-abbrev-p nil)
-;;   (spaceline-spacemacs-theme))
-
+;;*** `smartparens' handles paired punctuations The auhor recommends
+;; initialization using (require 'smartparens-config), but we want to
+;; do so using use-package. Found the solution 
+;; [[https://www.wisdomandwonder.com/article/9897/use-package-smartparens-config-ensure-smartparens][here]]
 (use-package smartparens
-  :defer 5.1
+  ;; :ensure t
+  :defer 5.3
   :blackout t
   :config
+  (setq sp-show-pair-from-inside nil)
+  (require 'smartparens-config)
   (smartparens-global-mode))
 
 (use-package highlight-parentheses
@@ -1146,35 +1041,17 @@ In that case, insert the number."
 ;; (defvar show-paren-delay 0)
 ;; (show-paren-mode t)
 
-;; (use-package buffer-move
-;;   :straight t
-;;   :defer t)
+;;*** `helpful' is an enhanced help
+(use-package helpful
+  :bind
+  ("C-h f" . #'helpful-callable)
+  ("C-h v" . #'helpful-variable)
+  ("C-h k" . #'helpful-key)
+  ("C-c C-d" .  #'helpful-at-point)
+  ("C-h C" . #'helpful-command) 	; override describe-coding-system
+  )
 
-;; (defun toggle-window-split ()
-;;   (interactive)
-;;   (if (= (count-windows) 2)
-;;       (let* ((this-win-buffer (window-buffer))
-;; 	     (next-win-buffer (window-buffer (next-window)))
-;; 	     (this-win-edges (window-edges (selected-window)))
-;; 	     (next-win-edges (window-edges (next-window)))
-;; 	     (this-win-2nd (not (and (<= (car this-win-edges)
-;; 					 (car next-win-edges))
-;; 				     (<= (cadr this-win-edges)
-;; 					 (cadr next-win-edges)))))
-;; 	     (splitter
-;; 	      (if (= (car this-win-edges)
-;; 		     (car (window-edges (next-window))))
-;; 		  'split-window-horizontally
-;; 		'split-window-vertically)))
-;; 	(delete-other-windows)
-;; 	(let ((first-win (selected-window)))
-;; 	  (funcall splitter)
-;; 	  (if this-win-2nd (other-window 1))
-;; 	  (set-window-buffer (selected-window) this-win-buffer)
-;; 	  (set-window-buffer (next-window) next-win-buffer)
-;; 	  (select-window first-win)
-;; 	  (if this-win-2nd (other-window 1))))))
-
+;;*** `ace-window' and `ace-link' 
 (use-package ace-window
   :defer t)
 
@@ -1283,6 +1160,20 @@ In that case, insert the number."
 
 
 ;;** my customization
+(when (file-exists-p custom-file) (load custom-file))
+
+(setq
+
+ ;; save frame realestate by not displaying calc-trail window
+ calc-display-trail nil
+ 
+ ;; To avoid slowdown due to fonts and font-lock reliant packages the following is recommended
+ ;; by https://github.com/integral-dw/org-superstar-mode
+ inhibit-compacting-font-caches t
+
+ visible-bell 1
+ read-process-output-max (* 1024 1024))
+
 ;; In Linux super and GUI seem synonymous as modifier. The keys with super modifier are largely free
 ;; while with kmonad (for traditional keyboard) and my sofle olkb, super key is one of the modifiers
 ;; on both sides of our home row. So utilizing super-modifier keys judiciously 
@@ -1291,17 +1182,16 @@ In that case, insert the number."
  ("s-c" . kill-ring-save)
  ("s-v" . yank)
  ("s-s" . save-buffer)
- ("s-S" . save-some-buffers)
  ;; ("s-o" . find-file) ; s-o is being intercepted by X11/wayland/gnome. need to investigate
- )
+ ("s-S" . save-some-buffers))
+
 ;; (global-set-key (kbd "TAB") 'self-insert-command)
 ;; (global-set-key (kbd "\C-c h") 'highlight-symbol-at-point)
 
 ;; dired will open file or directory in existing buffer with key 'a'
 (put 'dired-find-alternate-file 'disabled nil)
 (global-visual-line-mode)
-(setq visible-bell 1
-      read-process-output-max (* 1024 1024))
+
 
 ;; (defvar ispell-program-name "aspell")
 
@@ -1325,351 +1215,4 @@ In that case, insert the number."
 (setq
  gc-cons-threshold 100000000
  gc-cons-percentage 0.1)
-
-;;** commented code
-;;*** python IDE and pipenv
-;; (use-package elpy
-;;   :straight t
-;;   :hook ((python-mode . elpy-enable)
-;; 	 (python-mode . display-line-numbers-mode))
-;;   :config (setq elpy-rpc-backend "jedi"))
-
-;; mbk: A LSP client for Emacs using Python Jedi Language Server
-;; (use-package lsp-jedi
-;;   :disabled t
-;;   :config
-;;   (with-eval-after-load "lsp-mode"
-;;     (add-to-list 'lsp-disabled-clients 'pyls)
-;;     (add-to-list 'lsp-enabled-clients 'jedi)))
-
-;; mbk: Deceptively minimalistic Python IDE for GNU Emacs by abo-abo
-;; (use-package lpy
-;;   :straight t
-;;   :hook (python-mode . lpy-mode))
-
-;; mbk: Emacs client/library for Debug Adapter Protocol is a wire protocol for communication between client and Debug Server. It's similar to the LSP but provides integration with debug server.
-;; (use-package dap-mode
-;;   :straight t
-;;   :config (require 'dap-python)
-;;   :after elpy)
-
-;; (use-package pytest
-;;   :straight t
-;;   :after elpy)
-
-;; (use-package pipenv
-;;   :hook (python-mode . pipenv-mode)
-;;   :init
-;;   (setq
-;;    pipenv-projectile-after-switch-function
-;;    #'pipenv-projectile-after-switch-extended))
-
-;; (use-package pyenv
-;;   :straight (:host github :repo "aiguofer/pyenv.el")
-;;   :hook (python-mode . global-pyenv-mode))
-
-;;*** other stuff 
-;; (use-package haskell-mode
-;;   :straight t
-;;   :mode ("\\.hs\\'" . haskell-mode))
-
-;; mbk: Emmet  the essential toolkit for web-developers. Emmet is a plugin for many popular text editors which greatly improves HTML & CSS workflow:
-;; (use-package emmet-mode
-;;   :straight t
-;;   :hook ((web-mode . emmet-mode)
-;;          (css-mode . emmet-mode)))
-
-;; (use-package web-mode
-;;   :straight t
-;;   :mode (("\\.html\\'" . web-mode)))
-
-;; mbk: This minor mode sets background color to strings that match color names, e.g. #0000ff is displayed in white with a blue background
-;; (use-package rainbow-mode
-;;   :straight t
-;;   :diminish rainbow-mode
-;;   :hook ((org-mode . rainbow-mode)
-;; 	 (web-mode . rainbow-mode)))
-
-;; mbk: impatient-mode, which spontaneously update a web page as you edit your buffer of, typically, html.
-;; (use-package impatient-mode
-;;   :straight t
-;;   :defer t)
-
-;; mbk: A simple Emacs web server.
-;; (use-package simple-httpd
-;;   :straight t
-;;   :defer t)
-
-;; (use-package request
-;;   :straight t
-;;   :defer t)
-
-;; mbk: Improved JavaScript editing mode for GNU Emacs
-;; (use-package js2-mode
-;;   :straight t
-;;   :mode ("\\.js\\'" . js2-mode))
-
-;; mbk: TypeScript Interactive Development Environment for Emacs
-;; (use-package tide
-;;   :straight t
-;;   :hook (js-mode . tide-mode)
-;;   :config
-;;   (tide-setup)
-;;   (setq company-tooltip-align-annotations t)
-;;   (eldoc-mode)
-;;   (tide-hl-identifier-mode)
-;;   (company-mode))
-
-
-;; (use-package docker
-;;   :straight t
-;;   :commands docker)
-
-;; (use-package dockerfile-mode
-;;   :straight t
-;;   :mode ("Dockerfile\\'" . dockerfile-mode))
-
-
-
-
-;; (use-package dashboard
-;;   :straight t
-;;   :after (all-the-icons page-break-lines)
-;;   :config
-;;   ;; Dashboard configuration.
-;;   (dashboard-setup-startup-hook)
-;;   (setq dashboard-banner-logo-title "Welcome to Emacs")
-;;   (setq dashboard-startup-banner 'logo)
-;;   (setq dashboard-items '((recents . 5)
-;; 			  (bookmarks . 5)))
-;;   (setq dashboard-set-init-info t)
-;;   (setq dashboard-set-heading-icons t)
-;;   (setq dashboard-set-file-icons t)
-;;   (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*"))))
-
-
-;; (define-minor-mode sticky-buffer-mode
-;;   "Make the current window always display this buffer."
-;;   nil " sticky" nil
-;;   (set-window-dedicated-p (selected-window) sticky-buffer-mode))
-
-
-;; (use-package treemacs
-;;   :straight t
-;;   :defer t)
-
-;; (use-package command-log-mode
-;;   :straight t
-;;   :defer t)
-
-;; (use-package pass
-;;   :straight t
-;;   :defer t)
-
-;; (use-package debbugs
-;;   :straight t
-;;   :defer t)
-
-;; (use-package pdf-tools
-;;   :straight t
-;;   :mode ("\\.pdf\\'" . pdf-view-mode))
-
-;; (use-package emms
-;;   :straight t
-;;   :config
-;;   (require 'emms-setup)
-;;   (require 'emms-player-mpd)
-;;   (emms-all)
-;;   (setq emms-seek-seconds 5)
-;;   (setq emms-player-list '(emms-player-mpd emms-player-mpv))
-;;   (setq emms-info-functions '(emms-info-mpd))
-;;   (setq emms-player-mpd-server-name "localhost")
-;;   (setq emms-player-mpd-server-port "6601")
-;;   :commands hydra-emms/body
-;;   :bind
-;;   (("<XF86AudioPrev>" . emms-previous)
-;;    ("<XF86AudioNext>" . emms-next)
-;;    ("<XF86AudioPlay>" . emms-pause)
-;;    ("<XF86AudioStop>" . emms-stop)))
-
-;; (setq mpc-host "localhost:6601")
-
-;; (defun mpd/start-music-daemon ()
-;;   "Start MPD, connects to it and syncs the metadata cache."
-;;   (interactive)
-;;   (shell-command "mpd")
-;;   (mpd/update-database)
-;;   (emms-player-mpd-connect)
-;;   (emms-cache-set-from-mpd-all)
-;;   (message "MPD Started!"))
-
-;; (defun mpd/kill-music-daemon ()
-;;   "Stops playback and kill the music daemon."
-;;   (interactive)
-;;   (emms-stop)
-;;   (call-process "killall" nil nil nil "mpd")
-;;   (message "MPD Killed!"))
-
-
-;; (defun mpd/update-database ()
-;;   "Updates the MPD database synchronously."
-;;   (interactive)
-;;   (call-process "mpc" nil nil nil "update")
-;;   (message "MPD Database Updated!"))
-
-;; (use-package elfeed
-;;   :straight t
-;;   :defer t
-;;   :config (load-file (concat user-emacs-directory "personal-settings/feeds.el")))
-
-;; (use-package ytdl
-;;   :straight t
-;;   :commands ytdl-download
-;;   :config
-;;   (setq ytdl-media-player 'mpv))
-
-;; (use-package exwm
-;;   :straight t
-;;   :disabled t
-;;   :bind (("<XF86AudioRaiseVolume>" . (lambda ()
-;;                                        (interactive)
-;;                                        (call-process-shell-command "amixer set Master 5%+" nil 0)))
-;;          ("<XF86AudioLowerVolume>" . (lambda ()
-;;                                        (interactive)
-;;                                        (call-process-shell-command "amixer set Master 5%-" nil 0)))
-;;          ("<XF86AudioMute>" . (lambda ()
-;;                                 (interactive)
-;;                                 (call-process-shell-command "amixer set Master toggle" nil 0)))
-;;          ("<print>" . (lambda ()
-;;                         (interactive)
-;;                         (call-process-shell-command "flameshot gui" nil 0))))
-;;   :config
-;;   (add-hook 'exwm-init-hook (lambda ()
-;;                               (exwm-input-set-simulation-keys
-;;                                '(([?\C-w] . ?\C-x)
-;;                                  ([?\M-w] . ?\C-c)
-;;                                  ([?\C-y] . ?\C-v)
-;;                                  ([?\C-s] . ?\C-f)))))
-
-;;   (setq exwm-replace nil)
-;;   (require 'exwm-config)
-;;   (setq exwm-workspace-number 4)
-;;   (require 'exwm-randr)
-;;   (exwm-enable)
-;;   (setq exwm-randr-workspace-output-plist '(0 "eDP-1" 1 "HDMI-1"))
-;;   (add-hook 'exwm-randr-screen-change-hook
-;;             (lambda ()
-;;               (start-process-shell-command
-;;                "xrandr" nil "xrandr --output eDP-1 --right-of HDMI-1 --auto")))
-;;   (exwm-randr-enable))
-
-;; (defun screenshot-svg ()
-;;   "Save a screenshot of the current frame as an SVG image.
-;; Saves to a temp file and puts the filename in the kill ring."
-;;   (interactive)
-;;   (let* ((filename (make-temp-file "Emacs" nil ".svg"))
-;;          (data (x-export-frames nil 'svg)))
-;;     (with-temp-file filename
-;;       (insert data))
-;;     (kill-new filename)
-;;     (message filename)))
-
-;; (setq bookmark-default-file (concat user-emacs-directory "personal-settings/bookmarks"))
-
-;; (use-package org-static-blog
-;;   :straight t
-;;   :defer t
-;;   :config (load-file (concat user-emacs-directory "personal-settings/blog.el")))
-
-;; (use-package webjump
-;;   :defer t
-;;   :config (load-file (concat user-emacs-directory "personal-settings/webjump-sites.el")))
-
-;; (use-package gnus
-;;   :defer t
-;;   :config (setq gnus-init-file (concat user-emacs-directory "personal-settings/gnus.el")))
-
-;; (use-package lsp-mode
-;;   :straight t
-;;   :config (setq lsp-diagnostic-package :flymake)
-;;   :hook
-;;   ((c++-mode . lsp)
-;;    (c-mode . lsp)
-;;    (js-mode . lsp)))
-
-;; https://github.com/Wilfred/deadgrep
-;; (use-package deadgrep
-;;   :straight t)
-
-;; (use-package dumb-jump
-;;   :straight t
-;;   :defer t
-;;   :config
-;;   (setq dumb-jump-selector 'ivy))
-
-;; mbk: ccls is C/C++/ObjC language protocol server
-;; use clangd instead
-;; (use-package ccls
-;;   :after lsp-mode
-;;   :straight t
-;;   :config (setq ccls-executable "/usr/bin/ccls"))
-
-;; (defun my-c-mode-common-hook ()
-;;   (c-set-offset 'substatement-open 0)
-;;   (c-set-offset 'access-label '/)
-;;   (c-set-offset 'inclass '+)
-;;   (setq c-default-style "bsd"
-;; 	c-basic-offset 4
-;; 	c-indent-level 4
-;; 	c-indent-tabs-mode t
-;; 	c-tab-always-indent t
-;; 	c++-tab-always-indent t
-;; 	tab-width 4
-;; 	backward-delete-function nil))
-
-;; (add-hook 'c++-mode-common-hook 'my-c-mode-common-hook)
-;; (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
-
-;; (use-package go-mode
-;;   :straight t
-;;   :mode ("\\.go\\'" . go-mode)
-;;   :config
-;;   (defun my-go-mode-hook ()
-;;     (setq tab-width 4)
-;;     (setq gofmt-command "goimports")
-;;     (set (make-local-variable 'company-backends) '(company-go))
-;;     (company-mode))
-;;   (add-hook 'go-mode-hook 'my-go-mode-hook))
-
-;; (use-package company-go
-;;   :after (company go-mode)
-;;   :straight t)
-
-;; (use-package go-errcheck
-;;   :after go-mode
-;;   :straight t)
-
-;; (use-package sly
-;;   :straight t
-;;   :defer t
-;;   :config
-;;   (setq inferior-lisp-program "sbcl"))
-
-;; suggest.el is an Emacs package for discovering elisp functions based on examples. You supply an example input and output, and it makes suggestions.
-;; (use-package suggest
-;;   :straight t
-;;   :defer t)
-
-;; mbk: for scheme
-;; (use-package geiser
-;;   :straight t
-;;   :defer run-geiser
-;;   :config
-;;   ;; I have to use the guile2.2 binary because of Fedora
-;;   (setq geiser-guile-binary "guile2.2"))
-
-;; mbk: for clojure
-;; (use-package cider
-;;   :straight t
-;;   :defer t)
 

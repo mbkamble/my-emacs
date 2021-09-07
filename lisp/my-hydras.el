@@ -303,3 +303,106 @@
 ;;   ("q" nil "quit"))
 
 
+;;*** from https://www.wisdomandwonder.com/article/10760/emacsorg-mode-a-hydra-to-help-describe
+;; Hydra To Help Describe. Note the use of parent-mode-display
+;; (defhydra help/hydra/left/describe (:color blue
+;;                                            :hint nil)
+;;   "
+;; Describe Something: (q to quit)
+;; _a_ all help for everything screen
+;; _b_ bindings
+;; _B_ personal bindings
+;; _c_ char
+;; _C_ coding system
+;; _f_ function
+;; _F_ flycheck checker
+;; _i_ input method
+;; _k_ key briefly
+;; _K_ key
+;; _l_ language environment
+;; _L_ mode lineage
+;; _m_ major mode
+;; _M_ minor mode
+;; _n_ current coding system briefly
+;; _N_ current coding system full
+;; _o_ lighter indicator
+;; _O_ lighter symbol
+;; _p_ package
+;; _P_ text properties
+;; _s_ symbol
+;; _t_ theme
+;; _v_ variable
+;; _w_ where is something defined
+;; "
+;;   ("b" describe-bindings)
+;;   ("B" describe-personal-keybindings)
+;;   ("C" describe-categories)
+;;   ("c" describe-char)
+;;   ("C" describe-coding-system)
+;;   ("f" describe-function)
+;;   ("F" flycheck-describe-checker)
+;;   ("i" describe-input-method)
+;;   ("K" describe-key)
+;;   ("k" describe-key-briefly)
+;;   ("l" describe-language-environment)
+;;   ("L" help/parent-mode-display)
+;;   ("M" describe-minor-mode)
+;;   ("m" describe-mode)
+;;   ("N" describe-current-coding-system)
+;;   ("n" describe-current-coding-system-briefly)
+;;   ("o" describe-minor-mode-from-indicator)
+;;   ("O" describe-minor-mode-from-symbol)
+;;   ("p" describe-package)
+;;   ("P" describe-text-properties)
+;;   ("q" nil)
+;;   ("a" help)
+;;   ("s" describe-symbol)
+;;   ("t" describe-theme)
+;;   ("v" describe-variable)
+;;   ("w" where-is))
+;; (global-set-key (kbd "M-i") nil)
+;; (global-set-key (kbd "M-i") #'help/hydra/left/describe/body)
+;; (use-package parent-mode
+;;   :ensure t
+;;   :config
+;;   (defun help/parent-mode-display ()
+;;     "Display this buffer's mode hierarchy."
+;;     (interactive)
+;;     (let ((ls (parent-mode-list major-mode)))
+;;       (princ ls))))
+;; (use-package flycheck
+;;   :ensure t
+;;   :diminish flycheck-mode)
+
+;;*** manage buffers through eyebrowse and hydra
+;; https://www.wisdomandwonder.com/article/10596/screencast-building-a-little-ui-to-manage-buffersn
+;; (use-package eyebrowse
+;;   :ensure t
+;;   :config
+;;   (setq eyebrowse-wrap-around t)
+;;   (eyebrowse-mode t)
+;;   (defhydra help/hydra-left-side/eyebrowse (:color blue :hint nil)
+;;     "
+;; current eyebrowse slot: %(eyebrowse--get 'current-slot)
+;;  _j_ previous _k_ last _l_ next _u_ close _i_ choose _o_ rename _q_ quit
+;;    _a_ 00 _s_ 01 _d_ 02 _f_ 03 _g_ 04 _z_ 05 _x_ 06 _c_ 07 _v_ 08 _b_ 09"
+;;     ("j" #'eyebrowse-prev-window-config :exit nil)
+;;     ("k" #'eyebrowse-last-window-config)
+;;     ("l" #'eyebrowse-next-window-config :exit nil)
+;;     ("u" #'eyebrowse-close-window-config :exit nil)
+;;     ("i" #'eyebrowse-switch-to-window-config)
+;;     ("o" #'eyebrowse-rename-window-config :exit nil)
+;;     ("q" nil)
+;;     ("a" #'eyebrowse-switch-to-window-config-0)
+;;     ("s" #'eyebrowse-switch-to-window-config-1)
+;;     ("d" #'eyebrowse-switch-to-window-config-2)
+;;     ("f" #'eyebrowse-switch-to-window-config-3)
+;;     ("g" #'eyebrowse-switch-to-window-config-4)
+;;     ("z" #'eyebrowse-switch-to-window-config-5)
+;;     ("x" #'eyebrowse-switch-to-window-config-6)
+;;     ("c" #'eyebrowse-switch-to-window-config-7)
+;;     ("v" #'eyebrowse-switch-to-window-config-8)
+;;     ("b" #'eyebrowse-switch-to-window-config-9))
+;;   (global-set-key (kbd "C-M-e") #'help/hydra-left-side/eyebrowse/body))
+
+

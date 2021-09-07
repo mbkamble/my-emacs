@@ -13,7 +13,16 @@
   :group 'my
   :type 'string)
 (defvar victor-mono-ligatures
-  '("</" "</>" "/>" "~-" "-~" "~@" "<~" "<~>" "<~~" "~>" "~~" "~~>" ">=" "<=" "<!--" "##" "###" "####" "|-" "-|" "|->" "<-|" ">-|" "|-<" "|=" "|=>" ">-" "<-" "<--" "-->" "->" "-<" ">->" ">>-" "<<-" "<->" "->>" "-<<" "<-<" "==>" "=>" "=/=" "!==" "!=" "<==" ">>=" "=>>" ">=>" "<=>" "<=<" "<<=" "=<<" ".-" ".=" "=:=" "=!=" "==" "===" "::" ":=" ":>" ":<" ">:" ";;" "<|" "<|>" "|>" "<>" "<$" "<$>" "$>" "<+" "<+>" "+>" "?=" "/=" "/==" "/\\\\" "\\\\/" "__" "&&" "++" "+++") "In writing and typography, a ligature occurs where two or more graphemes or letters are joined to form a single glyph. These are the graphemes supported by Victor Mono font")
+  ;; do M-x ligature-mode to toggle the view of following ligatures
+  '("</" "</>" "/>" "~-" "-~" "~@" "<~" "<~>" "<~~" "~>" "~~" "~~>" ">=" "<="
+    "<!--" "##" "###" "####" "|-" "-|" "|->" "<-|" ">-|" "|-<" "|=" "|=>" ">-"
+    "<-" "<--" "-->" "->" "-<" ">->" ">>-" "<<-" "<->" "->>" "-<<" "<-<" "==>"
+    "=>" "=/=" "!==" "!=" "<==" ">>=" "=>>" ">=>" "<=>" "<=<" "<<=" "=<<" ".-"
+    ".=" "=:=" "=!=" "==" "===" "::" ":=" ":>" ":<" ">:" ";;" "<|" "<|>" "|>"
+    "<>" "<$" "<$>" "$>" "<+" "<+>" "+>" "?=" "/=" "/==" "/\\\\" "\\\\/" "__"
+    "&&" "++" "+++")
+  "In writing and typography, a ligature occurs where two or more graphemes or letters are joined to form a single glyph.
+These are the graphemes supported by Victor Mono font")
 
 ;; see https://zzamboni.org/post/beautifying-org-mode-in-emacs/
 (defcustom my-variable-pitch-font  "Source Sans Pro"
