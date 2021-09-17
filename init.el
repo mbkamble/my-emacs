@@ -1,6 +1,12 @@
 ;; Emacs initialization, customization from scratch        -*- lexical-binding: t; -*-
 ;; Copyright (C) 2021 by Milind Kamble
 
+;; set this to enter debugger when we want to debug errors thrown by condition-case-unless-debug
+;; form, which does not stop unless debug-on-error is t 
+;; (setq debug-on-error t)
+
+(setq disable-this-snippet t) 		; bypass experimental code
+
 ;; done in early-init for emacs 27+
 (when (< emacs-major-version 27)
   (setq gc-cons-threshold most-positive-fixnum)
@@ -153,6 +159,8 @@ NAME and ARGS are as in `use-package'."
 ;; this is used to patch functions (and maybe macros) with the ability to detect if/when the original changes
 (use-package el-patch
   :demand t)
+
+(use-package map)
 
 (use-package blackout)
 
@@ -521,6 +529,19 @@ disable itself. Sad."
  epa-file-encrypt-to '("milind.b.kamble@gmail.com"))
 (epa-file-name-regexp-update)
 
+;;*** `lispy' - ninja for sexp editing and navigation
+;; load it first so that it goes to bottom of minor-mode-map-alist and thus gets
+;; lower precedence for keybindings.
+;; this is an experiment to see if binding such as <tab> gets bound to outshine-mode in precedence of lispy-mode
+(use-package lispy
+  :config
+  (blackout 'lispy-mode (concat " " (all-the-icons-fileicon "scheme")))
+  :hook ((emacs-lisp-mode . lispy-mode)
+	 (lisp-mode . lispy-mode)
+	 (clojure-mode . lispy-mode)
+	 (scheme-mode . lispy-mode)
+	 (sly-mrepl-mode . lispy-mode)))
+
 ;;*** `bind-key' : better keybinding API
 ;; Package `bind-key' provides a macro by the same name (along with
 ;; `bind-key*' and `unbind-key') which provides a much prettier API
@@ -528,7 +549,8 @@ disable itself. Sad."
 ;; It's also the same API that `:bind' and similar keywords in
 ;; `use-package' use. (cf: radian.el)
 (require 'bind-key)
-
+;;*** `crux' Collection of Ridiculously Useful eXtensions for Emacs
+(use-package crux)
 ;;*** `no-littering' - keep files inside user-emacs-directory 
 (use-package no-littering
   :commands (no-littering-expand-var-file-name
@@ -739,16 +761,6 @@ In that case, insert the number."
   ;; enable outline-minor-mode for *ALL* programming buffers 
   (prog-mode . outshine-mode))
 
-;;*** `lispy' - ninja for sexp editing and navigation  
-(use-package lispy
-  :config
-  (blackout 'lispy-mode (concat " " (all-the-icons-fileicon "scheme")))
-  :hook ((emacs-lisp-mode . lispy-mode)
-	 (lisp-mode . lispy-mode)
-	 (clojure-mode . lispy-mode)
-	 (scheme-mode . lispy-mode)
-	 (sly-mrepl-mode . lispy-mode)))
-
 ;;*** `undo-tree' is a more intuitive way to navigate undo instead of linear traversal
 (use-package undo-tree
   :straight t
@@ -790,6 +802,47 @@ In that case, insert the number."
 ;;*** `yaml-mode'
 (use-package yaml-mode
   :mode ("\\.yml\\'" . yaml-mode))
+;;*** `python-mode'
+(use-package python
+  :ensure t)
+
+;;*** `cc-mode' provides major modes for C, C++, Objective-C, and Java
+(use-feature cc-mode
+  :load-path "straight/build/cc-mode/"
+  :config
+  
+  ;;   "Unconditionally inhibit CC submode indicators in the mode lighter.")
+  ;; Rather than using radian's defadvice to nullify the c-update-modeline func
+  ;; I'm directly redefining it. To me, it seems more easier to understand.
+  ;; (radian-defadvice radian--advice-inhibit-c-submode-indicators (&rest _)
+  ;;   :override #'c-update-modeline
+  (defun c-update-modeline () nil)
+  
+  ;; Switch to a better indentation-and-braces style. This turns the
+  ;; following code:
+  ;;
+  ;; if (condition)
+  ;;   {
+  ;;     statement;
+  ;;   }
+  ;;
+  ;; Into this:
+  ;;
+  ;; if (condition)
+  ;; {
+  ;;   statement;
+  ;; }
+  ;;
+  ;; We do this by defining a custom style that is based on BSD, and
+  ;; then overriding the indentation (which is set to 8 spaces by
+  ;; default). This style is only used for languages which do not have
+  ;; a more specific style set in `c-default-style'.
+  (c-add-style "radian-bsd"
+               '("bsd" (c-basic-offset . 2)))
+  (setf (alist-get 'other c-default-style) "radian-bsd")
+  
+  (put 'c-default-style 'safe-local-variable #'stringp))
+
 ;;*** `yasnippet' 
 (use-package yasnippet
   :straight t
@@ -946,8 +999,8 @@ In that case, insert the number."
 (use-package hydra
   :defer 2.5)
 
-(load "hydra-modal")
-(load "my-hydras")
+;; (load "hydra-modal")
+;; (load "my-hydras")
 
 ;;*** unlock keepassxc DB from emacs using dbus
 ;; read file content into a string http://ergoemacs.org/emacs/elisp_read_file_content.html
@@ -1158,7 +1211,18 @@ In that case, insert the number."
   (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
   (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*"))
 
+(load "my-ryo-modal")
 
+
+
+(add-hook 'eshell-mode-hook
+	  (lambda ()
+	    (use-package eshell-z)
+	    ;; addding history-references to input-functions enable the use of !foo:n
+	    ;; to insert the nth arg of last command beg with foo
+	    ;; or !?foo:n for last command containing foo
+	    (add-to-list 'eshell-expand-input-functions 'eshell-expand-history-references)
+	    ))
 ;;** my customization
 (when (file-exists-p custom-file) (load custom-file))
 
@@ -1215,4 +1279,3 @@ In that case, insert the number."
 (setq
  gc-cons-threshold 100000000
  gc-cons-percentage 0.1)
-

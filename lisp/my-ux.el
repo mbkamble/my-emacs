@@ -67,11 +67,14 @@ Defaults to t."
     (setq-default line-spacing 0)
 
     ;; change default font for current frame
-    (add-to-list 'default-frame-alist `(font . ,my-font))
-    (add-to-list 'default-frame-alist `(:height . 120))
+    ;; (add-to-list 'default-frame-alist `(font . ,my-font))
+    ;; (add-to-list 'default-frame-alist `(:height . 120))
     (set-face-attribute 'default nil :font my-font :height 120)
-    (set-face-attribute 'fixed-pitch nil :font my-font :height 120)
-
+    ;; As per https://protesilaos.com/codelog/2020-09-05-emacs-note-mixed-font-heights/
+    ;; we need to specify height of other fonts relative to default for text-scaling to work
+    ;; implicit height does not work, we need to explicitly specify the :height 1.0
+    (set-face-attribute 'fixed-pitch nil :font my-font :height 1.0)
+    (set-face-attribute 'mode-line nil :height 0.8)
     ;; enable ligatures
     (use-package ligature
       :straight (ligature :type git :host github :repo "mickeynp/ligature.el")
