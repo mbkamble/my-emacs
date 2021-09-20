@@ -14,19 +14,19 @@
 
 (use-package ryo-modal
   :commands ryo-modal-mode
-  :bind ("M-g" . ryo-modal-mode)		; hijack M-g to enter/exit ryo-modal-mode
+  :init
+  (add-hook 'ryo-modal-mode-hook
+            (lambda ()
+              (if ryo-modal-mode
+                  (selected-minor-mode 1)
+                (selected-minor-mode -1))))
+  :config
+  (require  'er-basic-expansions)
+  (require  'the-org-mode-expansions)
+  :bind ("M-g" . ryo-modal-mode) ; hijack M-g to enter/exit ryo-modal-mode
   ;; norepeat is not set. so all commands will be remembered and will respond to '.'
   )
 (defun mbk-insert-semicolon () (interactive) (insert-char ?\;))
-(ryo-modal-keys
- ("." ryo-modal-repeat)	   ; '.' is more intuitive than ',' for repeat
- ("t" backward-char)
- ("n" next-line)
- ("g" previous-line)
- ("h" forward-char)
- ;; ("C-;" mbk-insert-semicolon :exit t)
- )
-(define-key ryo-modal-mode-map "c" goto-map ) ; access gotomap using M-g c
 
 (ryo-modal-keys
  ;; First argument to ryo-modal-keys may be a list of keywords.
@@ -42,6 +42,28 @@
  ("7" "M-7")
  ("8" "M-8")
  ("9" "M-9"))
+
+(ryo-modal-key
+ "p" :hydra
+ '(my-point-motion-hydra ()
+			 "A hydra for point motion"
+			 ("a" crux-move-beginning-of-line)
+			 ("e" end-of-line)
+			 ("t" backward-char)
+			 ("T" backward-word)
+			 ("h" next-line)
+			 ("H" forward-paragraph)
+			 ("g" previous-line)
+			 ("G" backward-paragraph)
+			 ("n" forward-char)
+			 ("N" forward-word)
+			 ("l" avy-goto-line)
+			 ("c" avy-goto-char-2 :color blue)
+			 ("q" nil "quit" :color blue)
+			 ;; ("g" "M-g" :name "goto map")
+			 ))
+(define-key ryo-modal-mode-map "c" goto-map ) ; access gotomap using M-g c
+
 
 ;; example of bindings specific to a major mode
 (if disable-this-snippet nil
@@ -117,18 +139,7 @@
 (if disable-this-snippet nil
   (bind-key "g" goto-map my-point-motion-hydra/keymap))
 
-(ryo-modal-key
- "SPC m" :hydra
- '(my-point-motion-hydra
-   () "A hydra for point motion"
-   ("t" backward-char)
-   ("h" next-line)
-   ("g" previous-line)
-   ("n" forward-char)
-   ("T" backward-word)
-   ("N" forward-word)
-   ;; ("g" "M-g" :name "goto map")
-   ))
+
 
 (if disable-this-snippet nil
   (ryo-modal-keys (:norepeat t)

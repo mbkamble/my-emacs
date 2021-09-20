@@ -136,6 +136,20 @@ NAME and ARGS are as in `use-package'."
 ;;   :config
 ;;   (esup-child-max-depth 0))
 
+;;*** `all-the-icons' - multipurpose eye candy glyphs
+;; 
+;; all-the-icons-alltheicon (
+;; all-the-icons-faicon (https://fontawesome.com/v4.7/cheatsheet/, https://fontawesome.com/v5.15/icons?d=gallery&p=2) +1600 icons
+;; all-the-icons-fileicon (https://github.com/file-icons/icons/blob/master/charmap.md) +900 icons
+;; all-the-icons-octicon  (https://primer.style/octicons/) github icons
+;; all-the-icons-wicon (https://erikflowers.github.io/weather-icons/) various weather icons
+;; google material icons (https://material.io/icons/, or https://fonts.google.com/icons)
+;; https://github.com/file-icons/DevOpicons/blob/master/charmap.md
+(use-package all-the-icons
+  :demand t)
+
+(use-package use-package-ensure-system-package)
+
 ;;*** prevent Emacs provided orgmode from being loaded
 ;; Our real configuration for Org comes much later. Doing this now
 ;; means that if any packages that are installed in the meantime
@@ -530,9 +544,15 @@ disable itself. Sad."
 (epa-file-name-regexp-update)
 
 ;;*** `lispy' - ninja for sexp editing and navigation
-;; load it first so that it goes to bottom of minor-mode-map-alist and thus gets
-;; lower precedence for keybindings.
-;; this is an experiment to see if binding such as <tab> gets bound to outshine-mode in precedence of lispy-mode
+;; Re-adjust minor-mode-map-alist so that lispy, lispy-goto and lispy-other modes go to end of it
+;; This will make the keybinding precedenge of lispy to be the least
+(defun my-fling-lispy-to-end ()
+  (mapc (lambda (x)
+	  (let ((myentry (assq x minor-mode-map-alist)))
+	    ;; delete all occurences of x from alist and add it at the end
+	    (assq-delete-all x minor-mode-map-alist)
+	    (add-to-list 'minor-mode-map-alist myentry t)))
+	'(lispy-mode lispy-other-mode lispy-goto-mode)))
 (use-package lispy
   :config
   (blackout 'lispy-mode (concat " " (all-the-icons-fileicon "scheme")))
@@ -540,7 +560,8 @@ disable itself. Sad."
 	 (lisp-mode . lispy-mode)
 	 (clojure-mode . lispy-mode)
 	 (scheme-mode . lispy-mode)
-	 (sly-mrepl-mode . lispy-mode)))
+	 (sly-mrepl-mode . lispy-mode)
+	 (lispy-mode . my-fling-lispy-to-end)))
 
 ;;*** `bind-key' : better keybinding API
 ;; Package `bind-key' provides a macro by the same name (along with
@@ -731,12 +752,6 @@ In that case, insert the number."
   (selectrum-prescient-enable-filtering nil) ; prescient on top of orderless, enabling freceny-based sorting
   )
 ;; (prescient-persist-mode +1)
-
-;;*** `all-the-icons' - multipurpose eye candy glyphs   
-(use-package all-the-icons
-  :demand t)
-
-(use-package use-package-ensure-system-package)
 
 
 ;;*** `outshine' for code folding
@@ -1211,10 +1226,6 @@ In that case, insert the number."
   (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
   (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*"))
 
-(load "my-ryo-modal")
-
-
-
 (add-hook 'eshell-mode-hook
 	  (lambda ()
 	    (use-package eshell-z)
@@ -1270,6 +1281,11 @@ In that case, insert the number."
 
 (require 'my-ux) ;; my user interface
 (my-set-appearance)
+;; need to load it after theme is loaded because ryo-modal-cursor-color is defined as defconst
+;; and initialized to 'cursor background'. Before theme is loaded, this value is black and
+;; after theme is loaded, it is #FFD5BE. If it takes black value, it disappears
+(load "my-ryo-modal")
+
 
 (add-to-list 'safe-local-variable-values
 	     '(eval add-hook 'after-save-hook

@@ -17,6 +17,7 @@
 ;; see https://kakoune-editor.github.io/community-articles/2021/01/01/first_two_hours_in_two_minutes.html
 ;; https://github.com/jmorag/kakoune.el for kakoune emulation in emacs
 ;; https://www.wisdomandwonder.com/archive - articles about emacs
+;; https://glebec.github.io/lambda-talk/ - wonderful presentation about basic lambda calculus with detail speaker notes
 
 ** Emacs keybinding conventions
 - Don’t define C-c letter as a key in Lisp programs. Sequences consisting of C-c and a letter (either upper or lower case) are reserved for users; they are the only sequences reserved for users, so do not block them.
@@ -84,7 +85,16 @@ try: (symbol-function 'outshine-mode) - it will indicate that it is a compiled f
 - use C-h B to use completion filtering to view a key binding
 - C-h m describes the mode and also indicates shadowed key bindings
 - If you want all self-insert keys in ryo-modal-mode to be suppressed then run command ~(suppress-keymap ryo-modal-mode-map)~ which in turn does essentially the following: ~(define-key ryo-modal-mode-map [remap self-insert-command] 'undefined)~. Notice how all ~self-insert-command~ is remapped to ~undefined~
+** How to modify buffer local variables or call functions for a buffer from lisp code in scratch buffer
+- use ~(with-current-buffer "buffer-name" body-forms)~
+- so we can do  ~(with-current-buffer "buffer-name" (revert-buffer nil t))~
+- or   ~(with-current-buffer "buffer-name" (setq varible blah))~
 
+** How to enumerate a list or assoclist or plist or hash using dash
+- ~(let (l) (--each-indexed minor-mode-map-alist (push (list (car it) it-index) l)) l)~
+- see example in ~home/emacs-profiles/my-emacs/straight/repos/dash.el/dev/examples.el~
+** How to manipulate minor-mode-map-alist to reorder modes
+https://stackoverflow.com/questions/683425/globally-override-key-binding-in-emacs/5340797#5340797
 ** Emacs regex syntax
 - often I see regex specified as '\\(?:blah\\)'. The '?:' means a shy group - i.e. a group that cannot be back reference by a '\digit'.
 - ~'(rx stringarg)~ is a way to generate regex syntax complaint string using a mini-language which has sexp syntax with certain easy-to-read opeartors such as 'or', 'and' and other constructs. See function description through 'ctl-h f'
