@@ -45,7 +45,7 @@
 
 (ryo-modal-key
  "p" :hydra
- '(my-point-motion-hydra ()
+ '(my-point-motion-hydra (:exit nil)
 			 "A hydra for point motion"
 			 ("a" crux-move-beginning-of-line)
 			 ("e" end-of-line)

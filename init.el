@@ -791,6 +791,16 @@ In that case, insert the number."
 ;; (load "my-hercules")
 ;;*** `free-keys' shows unbound keys
 (use-package free-keys) 
+;;*** `selected'
+(use-package selected
+  :ensure t
+  :commands selected-minor-mode
+  :bind (:map selected-keymap
+              ("q" . selected-off)
+              ("u" . upcase-region)
+              ("d" . downcase-region)
+              ("w" . count-words-region)
+              ("m" . apply-macro-to-region-lines)))
 ;;** Themes
 ;;*** install `poet-theme'
 (use-package poet-theme
@@ -1226,14 +1236,19 @@ In that case, insert the number."
   (dired-rainbow-define vc "#0074d9" ("git" "gitignore" "gitattributes" "gitmodules"))
   (dired-rainbow-define-chmod executable-unix "#38c172" "-.*x.*"))
 
+(use-package eshell-z
+  :after eshell
+  :custom
+  (eshell-z-freq-dir-hash-table-file-name
+   (concat eshell-directory-name "z-dir-table")))
 (add-hook 'eshell-mode-hook
 	  (lambda ()
-	    (use-package eshell-z)
-	    ;; addding history-references to input-functions enable the use of !foo:n
-	    ;; to insert the nth arg of last command beg with foo
-	    ;; or !?foo:n for last command containing foo
-	    (add-to-list 'eshell-expand-input-functions 'eshell-expand-history-references)
-	    ))
+		    (require 'eshell-z)
+		    ;; addding history-references to input-functions enable the use of !foo:n
+		    ;; to insert the nth arg of last command beg with foo
+		    ;; or !?foo:n for last command containing foo
+		    (add-to-list 'eshell-expand-input-functions 'eshell-expand-history-references)
+		    ))
 ;;** my customization
 (when (file-exists-p custom-file) (load custom-file))
 
@@ -1281,6 +1296,7 @@ In that case, insert the number."
 
 (require 'my-ux) ;; my user interface
 (my-set-appearance)
+
 ;; need to load it after theme is loaded because ryo-modal-cursor-color is defined as defconst
 ;; and initialized to 'cursor background'. Before theme is loaded, this value is black and
 ;; after theme is loaded, it is #FFD5BE. If it takes black value, it disappears

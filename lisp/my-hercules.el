@@ -52,3 +52,29 @@
  :transient t
  )
 (bind-key "C-c f" #'foo-goto) 		; must match the arb name
+
+(hercules-def
+ :toggle-funs #'mbk-yank-hydra
+ :keymap 'bookmark-map
+ :transient t)
+(bind-key "C-c g" #'mbk-yank-hydra)
+(bind-key "y" #'mbk-yank-hydra 'ryo-modal-mode-map)
+
+(hercules-def
+ :toggle-funs #'mbk-ctlx-hydra
+ :keymap 'ctl-x-map
+ :transient t)
+(bind-key "x" #'mbk-ctlx-hydra 'ryo-modal-mode-map)
+
+(hercules-def
+ :show-funs #'mbk-search-hydra
+ ;; learning: we need to exit the hercules pop on invocation of functions like consult-ripgrep, occur etc
+ ;; which in turn use the minibuffer to read user input. If hercules lingers, then it captures the user input,
+ ;; which usually ends up into self-insert or triggering other commands from the key-map being displayed
+ ;; :hide-funs '(consult-ripgrep occur)
+ :hide-funs (-keep (lambda (x) (and (listp x ) (cdr x))) (cdr (-flatten search-map)))
+ :keymap 'search-map
+ :flatten t
+ ;; :transient t
+ )
+(bind-key "s" #'mbk-search-hydra 'ryo-modal-mode-map)

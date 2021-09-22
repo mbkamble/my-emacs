@@ -18,6 +18,15 @@
 ;; https://github.com/jmorag/kakoune.el for kakoune emulation in emacs
 ;; https://www.wisdomandwonder.com/archive - articles about emacs
 ;; https://glebec.github.io/lambda-talk/ - wonderful presentation about basic lambda calculus with detail speaker notes
+;; look into https://github.com/wurosh/compdef for a more efficient and performant completion-at-point system (capf)
+;; see also https://github.com/wurosh/handle : handle provides generic functions that specialize on major modes to do common/generic things such as 
+    evaluating expressions
+    starting repls
+    finding documentation
+    going to definition
+    formatting code
+    compiling code
+    listing errors
 
 ** Emacs keybinding conventions
 - Don’t define C-c letter as a key in Lisp programs. Sequences consisting of C-c and a letter (either upper or lower case) are reserved for users; they are the only sequences reserved for users, so do not block them.

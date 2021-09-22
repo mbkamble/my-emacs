@@ -1,3 +1,12 @@
+;; colors are shortcut for :exit and :foreign-keys keywords
+;; | color    | toggle                     |
+;; |----------+----------------------------|
+;; | red      |                            |
+;; | blue     | :exit t                    |
+;; | amaranth | :foreign-keys warn         |
+;; | teal     | :foreign-keys warn :exit t |
+;; | pink     | :foreign-keys run          |
+
 ;; (defhydra hydra-emms (:color teal
 ;;                              :hint nil)
 ;;   "
