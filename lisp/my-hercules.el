@@ -1,80 +1,64 @@
 ;;* My hercules definitions          -*- lexical-binding: t; -*-
 
+(require 'dash)
 (hercules-def
  ;; read further to see why this works
  :toggle-funs #'org-babel-mode
  :keymap 'org-babel-map
  :transient t)
- 
 ;; tweak binding to taste
-(define-key org-mode-map (kbd "C-c t") #'org-babel-mode)
+;; (define-key org-mode-map (kbd "C-c t") #'org-babel-mode)
+
+;; (hercules-def
+;;  :toggle-funs #'any-name
+;;  :keymap 'org-babel-map  ; choose the map you want to reuse
+;;  :whitelist-keys '("n" "p" "t")
+;; :transient t) ; any non-key map key will quit the hydra
+;; (bind-key "t" nil 'org-babel-map) ; t will quit the hydra
+;; (bind-key "C-c e" #'any-name)
+
+;; learning and documentation
+;; pressing any key outside the keymap will hide away the hercules popup if TRANSIENT is t
+;; within the commands mapped by the keymap, those that are in the HIDE-FUNS list will hide the popup and then execute the target command. this is most useful for commands that read arguments from minibuffer
+;; those that are in the SHOW-FUNS list will cause the popup to show
+;; those commands that are not specified in hide-funs list, will execute and keep the popup so that we can deliver same or other commands from that keymap
+;; FLATTEN will flatten the keymap recursively thru its sub keymaps
 
 (hercules-def
- :toggle-funs #'org-babel-mode
- :keymap 'org-babel-map
- :whitelist-keys '("n" "p" "t")
-:transient t)
- 
-(define-key <map-symbol> (kbd "<key>") #'org-babel-mode)
-
-(hercules-def
- :toggle-funs #'lispy-forward
- :keymap 'lispy-mode-map
- :transient t)
-
-(hercules-def
- :toggle-funs #'my-foo-mode
- :keymap 'lispy-mode-map
- ;; :whitelist-keys '("n" "p" "t")
- :transient t)
-(bind-key "<return>" nil 'lispy-mode-map)
-(bind-key "t" nil 'lispy-mode-map)
-(bind-key "C-c e" #'my-foo-mode)
-
-(hercules-def
- :toggle-funs #'my-ctl-cd-mode
- :keymap 'org-mode-map
- :transient t)
-(bind-key "C-c d" #'my-ctl-cd-mode)
-
-(hercules-def
- :toggle-funs #'org-babel-mode-foo
- :keymap 'org-babel-map
- :transient t)
-(bind-key "C-c f" #'org-babel-mode-foo)
-
-(setq my-fictional-keymap (make-sparse-keymap))
-(bind-key "a" #'org-show-all 'my-fictional-keymap)
-
-(hercules-def
- :show-funs #'foo-goto 			; we can choose arb name
- :keymap 'goto-map
- :transient t
- )
-(bind-key "C-c f" #'foo-goto) 		; must match the arb name
-
-(hercules-def
- :toggle-funs #'mbk-yank-hydra
- :keymap 'bookmark-map
- :transient t)
-(bind-key "C-c g" #'mbk-yank-hydra)
-(bind-key "y" #'mbk-yank-hydra 'ryo-modal-mode-map)
-
-(hercules-def
- :toggle-funs #'mbk-ctlx-hydra
- :keymap 'ctl-x-map
- :transient t)
-(bind-key "x" #'mbk-ctlx-hydra 'ryo-modal-mode-map)
-
-(hercules-def
- :show-funs #'mbk-search-hydra
- ;; learning: we need to exit the hercules pop on invocation of functions like consult-ripgrep, occur etc
- ;; which in turn use the minibuffer to read user input. If hercules lingers, then it captures the user input,
- ;; which usually ends up into self-insert or triggering other commands from the key-map being displayed
- ;; :hide-funs '(consult-ripgrep occur)
+ :show-funs #'my-search-map-nav
+ ;; almost all funs in the search-map are user interactive (taking user input from minibuffer to get their args) functions.
+ ;; So we progamatically flatten the keymap and extract the target commands which sit at the cdr cell of each list-item of the keymap
  :hide-funs (-keep (lambda (x) (and (listp x ) (cdr x))) (cdr (-flatten search-map)))
  :keymap 'search-map
  :flatten t
- ;; :transient t
+ :transient t
  )
-(bind-key "s" #'mbk-search-hydra 'ryo-modal-mode-map)
+(bind-key "s" #'my-search-map-nav 'ryo-modal-mode-map)
+
+(hercules-def
+ :show-funs #'my-goto-map-nav
+ :hide-funs '(goto-char consult-goto-line move-to-column consult-outline)
+ :keymap 'goto-map
+ :transient t)
+(bind-key "c" #'my-goto-map-nav 'ryo-modal-mode-map)
+
+;; create our own map for outshine and outline minor modes
+(setq my-outline-nav-map (make-sparse-keymap))
+(bind-keys :map my-outline-nav-map
+	   ("S" . outline-show-all)
+	   ("u" . outline-up-heading)
+	   ("f" . outline-forward-same-level)
+	   ("b" . outline-backward-same-level)
+	   ("n" . outline-next-visible-heading)
+	   ("p" . outline-previous-visible-heading)
+	   ("RET" . outline-insert-heading)
+	   ("q" . nil))
+(hercules-def
+ :show-funs #'my-outline-nav
+ :hide-funs '(outline-insert-heading)
+ :keymap 'my-outline-nav-map
+ :flatten t
+ :transient t
+ )
+(bind-key "f" #'my-outline-nav 'ryo-modal-mode-map)
+;; (define-key ryo-modal-mode-map "f" my-outline-nav-map)

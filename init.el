@@ -2,8 +2,8 @@
 ;; Copyright (C) 2021 by Milind Kamble
 
 ;; set this to enter debugger when we want to debug errors thrown by condition-case-unless-debug
-;; form, which does not stop unless debug-on-error is t 
-;; (setq debug-on-error t)
+;; form, which does not stop unless debug-on-error is 
+(setq debug-on-error t)
 
 (setq disable-this-snippet t) 		; bypass experimental code
 
@@ -84,9 +84,9 @@ as in `defun'."
          (add-hook hook ',name)))))
 
 ;;*** bootstrap 'straight'
-(setq straight-check-for-modifications '(check-on-save))
-(setq straight-repository-branch "develop")
-(setq straight-vc-git-default-clone-depth 1)
+(setq straight-check-for-modifications '(check-on-save)
+      straight-repository-branch "develop"
+      straight-vc-git-default-clone-depth 1)
 (defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
@@ -788,7 +788,7 @@ In that case, insert the number."
 (use-package hercules
   :commands
   (hercules-def))
-;; (load "my-hercules")
+
 ;;*** `free-keys' shows unbound keys
 (use-package free-keys) 
 ;;*** `selected'
@@ -1241,14 +1241,44 @@ In that case, insert the number."
   :custom
   (eshell-z-freq-dir-hash-table-file-name
    (concat eshell-directory-name "z-dir-table")))
-(add-hook 'eshell-mode-hook
-	  (lambda ()
-		    (require 'eshell-z)
-		    ;; addding history-references to input-functions enable the use of !foo:n
-		    ;; to insert the nth arg of last command beg with foo
-		    ;; or !?foo:n for last command containing foo
-		    (add-to-list 'eshell-expand-input-functions 'eshell-expand-history-references)
-		    ))
+
+;; `eshell' utilities
+;; other eshell related packxages
+;; eshell-autojump  the command j to list common directories and to jump to them.
+;; `eshell-bookmark' a simple package integrating eshell with bookmark.el.
+;; `eshell-fixedprompt' Minor mode to restrict eshell to use a single fixed prompt
+;;     wherein the prev command output isremoved (or scrolled out of sightG)uu;
+;; `eshell-outline' Enhanced outline-mode for Eshell
+;; `eshell-syntaxhighlighting'
+;; `eshell-up' navigating to a specific parent directory in eshell without typing ../.. etc
+(use-package eshell
+  ;; :bind (:map eshell-mode-map
+  ;;             ([remap eshell-pcomplete] . helm-esh-pcomplete)
+  ;;             ("M-r" . helm-eshell-history)
+  ;;             ("M-s f" . helm-eshell-prompts-all))
+  :custom
+  (eshell-banner-message "")
+  ;; (eshell-scroll-to-bottom-on-input t)
+  (eshell-error-if-no-glob t)
+  (eshell-hist-ignoredups t)
+  (eshell-save-history-on-exit t)
+  (eshell-prefer-lisp-functions nil)
+  ;; addding history-references to input-functions enable the use of !foo:n
+  ;; to insert the nth arg of last command beg with foo
+  ;; or !?foo:n for last command containing foo
+  (add-to-list 'eshell-expand-input-functions 'eshell-expand-history-references)
+  ;; (eshell-destroy-buffer-when-process-dies t)
+  ;; (eshell-highlight-prompt nil)
+
+  :config
+  (setenv "PAGER" "cat")
+  (require 'eshell-z)
+  )
+
+(use-package esh-autosuggest
+  :after eshell
+  :hook (eshell-mode . esh-autosuggest-mode))
+
 ;;** my customization
 (when (file-exists-p custom-file) (load custom-file))
 
@@ -1297,11 +1327,14 @@ In that case, insert the number."
 (require 'my-ux) ;; my user interface
 (my-set-appearance)
 
+(require 'my-utils)
+
 ;; need to load it after theme is loaded because ryo-modal-cursor-color is defined as defconst
 ;; and initialized to 'cursor background'. Before theme is loaded, this value is black and
 ;; after theme is loaded, it is #FFD5BE. If it takes black value, it disappears
 (load "my-ryo-modal")
-
+;; we add some more hydratic bindings using hercules into ryo-modal-mode-map
+(load "my-hercules")
 
 (add-to-list 'safe-local-variable-values
 	     '(eval add-hook 'after-save-hook

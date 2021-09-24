@@ -1,6 +1,17 @@
 ;;         -*- lexical-binding: t; -*-
 ;; use M-x ryo-modal-bindings to view your bindings
 
+
+;; milind kamble's keybinding scheme under ryo-modal-mode
+;; enter/exit mode: M-g
+;; | key  | binding            |
+;; | 0..9 | digit-arg          |
+;; | c    | goto-map-nav       |
+;; | f    | outline-nav        |
+;; | p    | point-motion-hydra |
+;; | s    | search-map-nav     |
+
+
 ;; form structure
 ;; (ryo-modal-keys list-of-keypairs), list-of-keypairs is (key target [keyword args]), target is unquotted command
 ;; (ryo-modal-key key target [keyword args], target is quoted
@@ -62,7 +73,9 @@
 			 ("q" nil "quit" :color blue)
 			 ;; ("g" "M-g" :name "goto map")
 			 ))
-(define-key ryo-modal-mode-map "c" goto-map ) ; access gotomap using M-g c
+
+;; (define-key ryo-modal-mode-map "c" goto-map )
+					; access gotomap using M-g c
 
 
 ;; example of bindings specific to a major mode
