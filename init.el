@@ -935,6 +935,11 @@ In that case, insert the number."
   (setq org-src-window-setup 'current-window)
   (setq org-agenda-window-setup 'current-window))
 
+;;*** `poporg' edit comment strings in a popout orgmode
+(use-package poporg
+  :commands (poporg-dwim)
+  :bind ("C-x c" . poporg-dwim))
+
 ;;*** `org-bullets'
 ;; see https://mstempl.netlify.app/post/beautify-org-mode/ for techniques to beautify org rendering
 ;; (use-package org-bullets
@@ -1131,7 +1136,9 @@ In that case, insert the number."
 
 ;;*** `ace-window' and `ace-link' 
 (use-package ace-window
-  :defer t)
+  :custom
+  (aw-keys '(?a ?o ?e ?u ?h ?t ?n ?s))
+  )
 
 (use-package ace-link
   :defer 4.1
@@ -1286,7 +1293,9 @@ In that case, insert the number."
 
  ;; save frame realestate by not displaying calc-trail window
  calc-display-trail nil
- 
+
+ ;; always select help window when it appears
+ help-window-select t
  ;; To avoid slowdown due to fonts and font-lock reliant packages the following is recommended
  ;; by https://github.com/integral-dw/org-superstar-mode
  inhibit-compacting-font-caches t
@@ -1294,16 +1303,25 @@ In that case, insert the number."
  visible-bell 1
  read-process-output-max (* 1024 1024))
 
-;; In Linux super and GUI seem synonymous as modifier. The keys with super modifier are largely free
-;; while with kmonad (for traditional keyboard) and my sofle olkb, super key is one of the modifiers
-;; on both sides of our home row. So utilizing super-modifier keys judiciously 
-;; Let us use super-c and super-v for copy and paste in global keymap.
+;; super(mapped to windows key by X) key was an option I was considering for use as mod-singlekey accelerators. But Windows
+;; has it's own shortcuts for it and shadows what we could have used them for emacs.
+;; so following back to options using C or M modifiers to keep it portable across windows, linux
+;;
+;; |command           | origbind | newbind |
+;; |kill-ring-save    | m-w      | c-c c   |
+;; |yank              | c-y      | c-c v   |
+;; |save some buffers | c-x s .  | c-c s . |
+;; |ace-window        | C-x o    | C-c w   |
+;; |consult-buffer    | C-x b    | C-c u   |
+
 (bind-keys
- ("s-c" . kill-ring-save)
- ("s-v" . yank)
- ("s-s" . save-buffer)
- ;; ("s-o" . find-file) ; s-o is being intercepted by X11/wayland/gnome. need to investigate
- ("s-S" . save-some-buffers))
+ ;; :map default is global which is what we want
+ ("C-c c" . kill-ring-save)
+ ("C-c v" . yank)
+ ("C-c s" . save-some-buffers) ; use . to save only current buffer, ! to save all. see info for other options
+ ("C-c w" . ace-window)
+ ("C-c u" . consult-buffer)
+ )
 
 ;; (global-set-key (kbd "TAB") 'self-insert-command)
 ;; (global-set-key (kbd "\C-c h") 'highlight-symbol-at-point)

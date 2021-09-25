@@ -173,22 +173,25 @@ line."
 
 ;; from https://emacs.stackexchange.com/questions/653/how-can-i-find-out-in-which-keymap-a-key-is-bound
 ;; How can I find out in which keymap a key is bound?
-(defun my--key (key)
+(defun my--lookup-key (key)
   "Search for KEY in all known keymaps."
-  (mapatoms (lambda (ob) (when (and (boundp ob) (keymapp (symbol-value ob)))
-                      (when (functionp (lookup-key (symbol-value ob) key))
-                        (message "%S" ob))))
-            obarray))
+  (with-output-to-temp-buffer "mbktmp"
+    (mapatoms (lambda (ob)
+		(when (and (boundp ob) (keymapp (symbol-value ob)))
+		  (when (functionp (lookup-key (symbol-value ob) key))
+		    (princ ob) (princ "\n"))))
+	      obarray)))
 (defun my--lookup-key-prefix (key)
   "Search for KEY as prefix in all known keymaps."
-  (mapatoms (lambda (ob) (when (and (boundp ob) (keymapp (symbol-value ob)))
-                      (when (let ((m (lookup-key (symbol-value ob) key)))
-                              (and m (or (symbolp m) (keymapp m))))
-                        (message "%S" ob))))
-            obarray))
+  (with-output-to-temp-buffer "mbktmp"
+    (mapatoms (lambda (ob)
+		(when (and (boundp ob) (keymapp (symbol-value ob)))
+		  (when (let ((m (lookup-key (symbol-value ob) key)))
+			  (and m (or (symbolp m) (keymapp m))))
+		    (princ ob) (princ "\n"))))
+	      obarray)))
 ;; (lookup-key global-map (kbd "C-c"))
 ;; (lookup-key ryo-modal-mode-map (kbd "SPC"))
-
 
 (defun my--get-keymaps ()
   (interactive)
@@ -227,14 +230,23 @@ With prefix P, create local abbrev. Otherwise it will be global."
 ;; (define-key ctl-x-map (kbd "C-i") 'ispell-word-then-abbrev)
 
 
-(defun my-lookup-key-prefix (key)
-  "Search for KEY as prefix in all known keymaps."
-  (mapatoms (lambda (ob) (when (and (boundp ob) (keymapp (symbol-value ob)))
-                      (when (let ((m (lookup-key (symbol-value ob) key)))
-                              (and m (or (symbolp m) (keymapp m))))
-                        (message "%S" ob))))
-            obarray))
-
 ;; show the name of the keymap corresponding to the prefix key ARG in the given keymap
 
+;; using dash command to print (index, car) of each element of minor-mode-map-alist
+;; similar to enumerate of python
+(defun my--enumerate-alist (alist)
+  (require 'dash)
+  (let (l)
+    (--each-indexed minor-mode-map-alist
+      (push (list (car it) it-index) l))
+    (mapc (lambda (i) (princ i t)) l)))
+
+;; (defun my-enumerate-minor-mode-map-alist ()
+;;   (require 'dash)
+;;   (let (l)
+;;     (--each-indexed minor-mode-map-alist
+;;       (push (list (car it) it-index) l))
+;;     (mapc (lambda (i) (princ i t)) l)))
+
 (provide 'my-utils)
+

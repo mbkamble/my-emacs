@@ -6,6 +6,7 @@
 ;; enter/exit mode: M-g
 ;; | key  | binding            |
 ;; | 0..9 | digit-arg          |
+;; | b    | buffer-actions     |
 ;; | c    | goto-map-nav       |
 ;; | f    | outline-nav        |
 ;; | p    | point-motion-hydra |

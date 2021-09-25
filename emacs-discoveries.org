@@ -27,7 +27,7 @@
     formatting code
     compiling code
     listing errors
-
+;; https://emacsconf.org/2020/talks/
 ** Emacs keybinding conventions
 - Don’t define C-c letter as a key in Lisp programs. Sequences consisting of C-c and a letter (either upper or lower case) are reserved for users; they are the only sequences reserved for users, so do not block them.
 - Changing all the Emacs major modes to respect this convention was a lot of work; abandoning this convention would make that work go to waste, and inconvenience users. Please comply with it.
@@ -36,6 +36,34 @@
 - Sequences consisting of C-c followed by {, }, <, >, : or ; are also reserved for major modes.
 - Sequences consisting of C-c followed by any other ASCII punctuation or symbol character are allocated for minor modes. Using them in a major mode is not absolutely prohibited, but if you do that, the major mode binding may be shadowed from time to time by minor modes.
 - Don’t bind C-h following any prefix character (including C-c). If you don’t bind C-h, it is automatically available as a help character for listing the subcommands of the prefix character. 
+*** Top level single key bindings with M and C modifiers
+**** Elisp mode
+| M-a | backward-sentence              | C-a     | lispy-move-beginning-of-line   |
+| M-b | backward-word                  | C-b     | backward-char                  |
+| M-c | capitalize-word                | C-c     | keymap: ctl-c                  |
+| M-d | lispy-kill-word                | C-d     | lispy-delete                   |
+| M-e | forward-sentence               | C-e     | lispy-move-end-of-line         |
+| M-f | forward-word                   | C-f     | forward-char                   |
+| M-g | ryo-modal-mode                 | C-g     | keyboard-quit                  |
+| M-h | mark-paragraph                 | C-h     | help-command                   |
+| M-i | lispy-iedit                    | TAB     | outshine-kbd-TAB               |
+| M-j | lispy-split                    | C-j     | lispy-newline-and-indent       |
+| M-k | lispy-kill-sentence            | C-k     | lispy-kill                     |
+| M-l | downcase-word                  | C-l     | recenter-top-bottom            |
+| M-m | lispy-mark-symbol              | C-m/RET | lispy-newline-and-indent-plain |
+| M-n | undefined                      | C-n     | next-line                      |
+| M-o | lispy-left-maybe               | C-o     | open-line                      |
+| M-p | undefined                      | C-p     | previous-line                  |
+| M-q | lispy-fill                     | C-q     | quoted-insert                  |
+| M-r | move-to-window-line-top-bottom | C-r     | isearch-backward               |
+| M-s | keymap: search-map             | C-s     | isearch-forward                |
+| M-t | transpose-words                | C-t     | transpose-chars                |
+| M-u | upcase-word                    | C-u     | universal-argument             |
+| M-v | scroll-down-command            | C-v     | scroll-up-command              |
+| M-w | kill-ring-save                 | C-w     | kill-region                    |
+| M-x | execute-extended-command       | C-x     | keymap: ctl-x                  |
+| M-y | popup-kill-ring                | C-y     | lispy-yank                     |
+| M-z | zap-to-char                    | C-z     | suspend-frame                  |
 ** Whitespace management
 - Esc-Spc : collapse WS around point
 - C-x C-o : collapse consecutive white lines (delete-blank-lines)
