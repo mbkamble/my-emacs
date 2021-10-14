@@ -1,11 +1,12 @@
-;; Emacs initialization, customization from scratch        -*- lexical-binding: t; -*-
+;; * Emacs initialization, customization from scratch        -*- lexical-binding: t; -*-
 ;; Copyright (C) 2021 by Milind Kamble
 
 ;; set this to enter debugger when we want to debug errors thrown by condition-case-unless-debug
 ;; form, which does not stop unless debug-on-error is 
-(setq debug-on-error t)
+;; (setq debug-on-error t)
 
 (setq disable-this-snippet t) 		; bypass experimental code
+(setq prefix-help-command #'embark-prefix-help-command)
 
 ;; done in early-init for emacs 27+
 (when (< emacs-major-version 27)
@@ -13,8 +14,8 @@
   (setq gc-cons-percentage 0.6))
 (add-to-list 'load-path (concat user-emacs-directory "lisp"))
 
-;;** Essentials from radian. configure key packages: straight, use-package, org, el-patch
-;;*** Reuse a couple of macros from radian
+;; ** Essentials from radian. configure key packages: straight, use-package, org, el-patch
+;; *** Reuse a couple of macros from radian
 (defmacro radian-defadvice (name arglist where place docstring &rest body)
   "Define an advice called NAME and add it to a function.
 ARGLIST is as in `defun'. WHERE is a keyword as passed to
@@ -83,7 +84,7 @@ as in `defun'."
        (dolist (hook ',hooks)
          (add-hook hook ',name)))))
 
-;;*** bootstrap 'straight'
+;; *** bootstrap 'straight'
 (setq straight-check-for-modifications '(check-on-save)
       straight-repository-branch "develop"
       straight-vc-git-default-clone-depth 1)
@@ -100,7 +101,7 @@ as in `defun'."
       (eval-print-last-sexp)))
   (load bootstrap-file nil 'nomessage))
 
-;;*** use-package
+;; *** use-package
 
 ;; Package `use-package' provides a handy macro by the same name which
 ;; is essentially a wrapper around `with-eval-after-load' with a lot
@@ -128,7 +129,7 @@ NAME and ARGS are as in `use-package'."
      :straight nil
      ,@args))
 
-;;*** not working  `esup' - emacs startup profiler
+;; *** not working  `esup' - emacs startup profiler
 ;; (use-package esup
 ;;   :ensure t
 ;;   :custom
@@ -136,7 +137,7 @@ NAME and ARGS are as in `use-package'."
 ;;   :config
 ;;   (esup-child-max-depth 0))
 
-;;*** `all-the-icons' - multipurpose eye candy glyphs
+;; *** `all-the-icons' - multipurpose eye candy glyphs
 ;; 
 ;; all-the-icons-alltheicon (
 ;; all-the-icons-faicon (https://fontawesome.com/v4.7/cheatsheet/, https://fontawesome.com/v5.15/icons?d=gallery&p=2) +1600 icons
@@ -150,7 +151,7 @@ NAME and ARGS are as in `use-package'."
 
 (use-package use-package-ensure-system-package)
 
-;;*** prevent Emacs provided orgmode from being loaded
+;; *** prevent Emacs provided orgmode from being loaded
 ;; Our real configuration for Org comes much later. Doing this now
 ;; means that if any packages that are installed in the meantime
 ;; depend on Org, they will not accidentally cause the Emacs-provided
@@ -169,7 +170,7 @@ NAME and ARGS are as in `use-package'."
 
 
 
-;;*** install/enable the el-patch package (cf https://github.com/raxod502/el-patch)
+;; *** install/enable the el-patch package (cf https://github.com/raxod502/el-patch)
 ;; this is used to patch functions (and maybe macros) with the ability to detect if/when the original changes
 (use-package el-patch
   :demand t)
@@ -179,8 +180,8 @@ NAME and ARGS are as in `use-package'."
 (use-package blackout)
 
 
-;;** Version control
-;;*** disable native VC backends since we will use magit 
+;; ** Version control
+;; *** disable native VC backends since we will use magit 
 ;; Feature `vc-hooks' provides hooks for the Emacs VC package. We
 ;; don't use VC, because Magit is superior in pretty much every way.
 (use-feature vc-hooks
@@ -191,15 +192,15 @@ NAME and ARGS are as in `use-package'."
   ;; https://stackoverflow.com/a/6190338/3538165.
   (setq vc-handled-backends nil))
 
-;;*** visualize and resolve git merge conflicts using feature `smerge-mode'
+;; *** visualize and resolve git merge conflicts using feature `smerge-mode'
 (use-feature smerge-mode
   :blackout t)
 
-;;*** use emacs as external editor through package `with-editor'
+;; *** use emacs as external editor through package `with-editor'
 (use-package with-editor
   )
 
-;;*** magit requires package `transient' to display popups.
+;; *** magit requires package `transient' to display popups.
 (use-package transient
   :demand t
   :config
@@ -209,7 +210,7 @@ NAME and ARGS are as in `use-package'."
   ;; for discussion.
   (transient-bind-q-to-quit))
 
-;;*** configure package `magit'
+;; *** configure package `magit'
 (use-package magit
   :bind (;; This is the primary entry point for Magit. Binding to C-x
          ;; g is recommended in the manual:
@@ -298,7 +299,7 @@ as argument."
   (transient-append-suffix 'magit-fetch "-t"
     '("-u" "Unshallow" "--unshallow")))
 
-;;*** Feature `magit-diff' from package `magit' handles interactive Git diffs.
+;; *** Feature `magit-diff' from package `magit' handles interactive Git diffs.
 (use-feature magit-diff
   :config
 
@@ -316,7 +317,7 @@ disable itself. Sad."
 		    (with-current-buffer buf
 		      (auto-revert-handler))))
 
-;;*** commit message editing capabilities through feature `git-commit' from package `magit'
+;; *** commit message editing capabilities through feature `git-commit' from package `magit'
 (use-feature git-commit
   :config
 
@@ -533,8 +534,8 @@ disable itself. Sad."
 ;;         (apply func args)))))
 
 
-;;** General packages 
-;;*** EPA
+;; ** General packages 
+;; *** EPA
 (setq
  epa-armor t
  epa-file-name-regexp "\\.\\(gpg\\|asc\\)$"
@@ -543,7 +544,11 @@ disable itself. Sad."
  epa-file-encrypt-to '("milind.b.kamble@gmail.com"))
 (epa-file-name-regexp-update)
 
-;;*** `lispy' - ninja for sexp editing and navigation
+;; *** `s' the (long lost) emacs string manipulation library
+(use-package s
+  :commands (s-replace))
+
+;; *** `lispy' - ninja for sexp editing and navigation
 ;; Re-adjust minor-mode-map-alist so that lispy, lispy-goto and lispy-other modes go to end of it
 ;; This will make the keybinding precedenge of lispy to be the least
 (defun my-fling-lispy-to-end ()
@@ -555,6 +560,9 @@ disable itself. Sad."
 	'(lispy-mode lispy-other-mode lispy-goto-mode)))
 (use-package lispy
   :config
+  ;; default lispy-outline is "^;;\\(?:;[^#]\\|\\*+\\)" There is no SPC before the `*'
+  ;; which breaks the convention used by outline mode
+  (setq-default lispy-outline (s-replace "|" "| " lispy-outline))
   (blackout 'lispy-mode (concat " " (all-the-icons-fileicon "scheme")))
   :hook ((emacs-lisp-mode . lispy-mode)
 	 (lisp-mode . lispy-mode)
@@ -563,16 +571,16 @@ disable itself. Sad."
 	 (sly-mrepl-mode . lispy-mode)
 	 (lispy-mode . my-fling-lispy-to-end)))
 
-;;*** `bind-key' : better keybinding API
+;; *** `bind-key' : better keybinding API
 ;; Package `bind-key' provides a macro by the same name (along with
 ;; `bind-key*' and `unbind-key') which provides a much prettier API
 ;; for manipulating keymaps than `define-key' and `global-set-key' do.
 ;; It's also the same API that `:bind' and similar keywords in
 ;; `use-package' use. (cf: radian.el)
 (require 'bind-key)
-;;*** `crux' Collection of Ridiculously Useful eXtensions for Emacs
+;; *** `crux' Collection of Ridiculously Useful eXtensions for Emacs
 (use-package crux)
-;;*** `no-littering' - keep files inside user-emacs-directory 
+;; *** `no-littering' - keep files inside user-emacs-directory 
 (use-package no-littering
   :commands (no-littering-expand-var-file-name
              no-littering-expand-etc-file-name)
@@ -587,7 +595,7 @@ disable itself. Sad."
    `((".*" . ,(no-littering-expand-var-file-name "backups/")))
    custom-file (no-littering-expand-etc-file-name "custom.el")))
 
-;;*** `recentf' - handy access to recent files
+;; *** `recentf' - handy access to recent files
 ;; (use-package frecency)
 ;; (use-package persist)
 ;; actually from elpa
@@ -614,83 +622,93 @@ disable itself. Sad."
   (recentf-auto-cleanup 'never)
   (recentf-keep '(file-remote-p file-readable-p)))
 
-;;*** configure `which-key'
+;; *** configure `which-key'
+;; setting prefix-help-command to my  preferred version based on reading at
+;; https://with-emacs.com/posts/ui-hacks/prefix-command-completion/
+(defun my--wk-help-dbg ()
+  (message (buffer-name))
+  (message "prefix-help-command:%s" prefix-help-command)
+  (describe-key-briefly "C-h"))
 (use-package which-key
+  :after embark
   ;; :demand t
   :blackout t
+  ;; :hook
+  ;; (which-key-init-buffer . my--wk-help-dbg)
   :init
+  (setq prefix-help-command #'embark-prefix-help-command)
   (which-key-mode 1))
 
-;;*** `orderless' - a completion style using space-separated patters in any order
+;; *** `orderless' - a completion style using space-separated patters in any order
 (use-package orderless
   :ensure t
   :custom
   (completion-styles '(orderless)))
 
-;;*** Use `selectrum' instead of ivy (or other completion systems such as ido, helm, raven, swiper etc.)
+;; *** Use `selectrum' instead of ivy (or other completion systems such as ido, helm, raven, swiper etc.)
 ;; selectrum provides completion-at-point functionality
 (use-package selectrum
   :diminish "sel"
   :init
   (selectrum-mode +1))
 
-;;*** `company' for completion 
-(progn
-  (if nil nil 				; disabling company-mode in-lue of consult
-    (use-package company
-      :commands company-mode
-      :blackout t
-      :bind (:map company-active-map
-		  ("C-n" . 'company-select-next)
-		  ("C-p" . 'company-select-previous))
-      :hook ((emacs-lisp-mode . company-mode)
-             (lisp-mode . company-mode)
-             (sly-mrepl-mode . company-mode))
-      :config
-      (setq company-idle-delay 0)
+;; *** `company' for completion 
+;; (progn
+;;   (if nil nil 				; disabling company-mode in-lue of consult
+;;     (use-package company
+;;       :commands company-mode
+;;       :blackout t
+;;       :bind (:map company-active-map
+;; 		  ("C-n" . 'company-select-next)
+;; 		  ("C-p" . 'company-select-previous))
+;;       :hook ((emacs-lisp-mode . company-mode)
+;;              (lisp-mode . company-mode)
+;;              (sly-mrepl-mode . company-mode))
+;;       :config
+;;       (setq company-idle-delay 0)
 
-      ;; Using digits to select company-mode candidates
-      ;; https://oremacs.com/2017/12/27/company-numbers/
-      (setq company-show-numbers t)
+;;       ;; Using digits to select company-mode candidates
+;;       ;; https://oremacs.com/2017/12/27/company-numbers/
+;;       (setq company-show-numbers t)
 
-      (let ((map company-active-map))
-	(mapc
-	 (lambda (x)
-	   (define-key map (format "%d" x) 'ora-company-number))
-	 (number-sequence 0 9))
-	(define-key map " " (lambda ()
-                              (interactive)
-                              (company-abort)
-                              (self-insert-command 1)))
-	(define-key map (kbd "<return>") nil))
+;;       (let ((map company-active-map))
+;; 	(mapc
+;; 	 (lambda (x)
+;; 	   (define-key map (format "%d" x) 'ora-company-number))
+;; 	 (number-sequence 0 9))
+;; 	(define-key map " " (lambda ()
+;;                               (interactive)
+;;                               (company-abort)
+;;                               (self-insert-command 1)))
+;; 	(define-key map (kbd "<return>") nil))
 
-      (defun ora-company-number ()
-	"Forward to `company-complete-number'.
+;;       (defun ora-company-number ()
+;; 	"Forward to `company-complete-number'.
 
-Unless the number is potentially part of the candidate.
-In that case, insert the number."
-	(interactive)
-	(let* ((k (this-command-keys))
-               (re (concat "^" company-prefix k)))
-	  (if (cl-find-if (lambda (s) (string-match re s))
-			  company-candidates)
-              (self-insert-command 1)
-            (company-complete-number (string-to-number k))))))
-    (use-package company-prescient
-      :after (company precsient))
-    (company-prescient-mode +1)
+;; Unless the number is potentially part of the candidate.
+;; In that case, insert the number."
+;; 	(interactive)
+;; 	(let* ((k (this-command-keys))
+;;                (re (concat "^" company-prefix k)))
+;; 	  (if (cl-find-if (lambda (s) (string-match re s))
+;; 			  company-candidates)
+;;               (self-insert-command 1)
+;;             (company-complete-number (string-to-number k))))))
+;;     (use-package company-prescient
+;;       :after (company precsient))
+;;     (company-prescient-mode +1)
 
-    ;; when idling on completion candidate, popup help after 'company-quickhelp-delay'
-    (use-package company-quickhelp
-      :hook (company-mode . company-quickhelp-local-mode))))
+;;     ;; when idling on completion candidate, popup help after 'company-quickhelp-delay'
+;;     (use-package company-quickhelp
+;;       :hook (company-mode . company-quickhelp-local-mode))))
 
 
-;;*** `consult' completion framework 
+;; *** `consult' completion framework 
 ;; consult, marginalia, embark work together for providing completions
 
 (load "my-consult-config")
 
-;;*** `marginalia' enable richer annotations including richer annotation of
+;; *** `marginalia' enable richer annotations including richer annotation of
 ;; completion candidates
 (use-package marginalia
   ;; Either bind `marginalia-cycle` globally or only in the minibuffer
@@ -705,29 +723,25 @@ In that case, insert the number."
   ;; enabled right away. Note that this forces loading the package.
   (marginalia-mode))
 
-;;*** `embark' package for mini-buffer actions and right-click contextual menu functionality
+;; *** `embark' package for mini-buffer actions and right-click contextual menu functionality
 (use-package embark
-  :ensure t
-
+  :demand t
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
    ("C-;" . embark-dwim)        ;; good alternative: M-.
    ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
 
-  :init
-
+  :config
   ;; Optionally replace the key help with a completing-read interface
   (setq prefix-help-command #'embark-prefix-help-command)
-
-  :config
-
+  
   ;; Hide the mode line of the Embark live/completions buffers
   (add-to-list 'display-buffer-alist
                '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
                  nil
                  (window-parameters (mode-line-format . none)))))
 
-;;*** `embark-consult' package.
+;; *** `embark-consult' package.
 (use-package embark-consult
   :ensure t
   :after (embark consult)
@@ -737,7 +751,7 @@ In that case, insert the number."
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
-;;*** `prescient' sorts and filters lists of candidates generated by completion frameworks like company, consult etc.
+;; *** `prescient' sorts and filters lists of candidates generated by completion frameworks like company, consult etc.
 (use-package prescient
   :defer t
   :custom
@@ -754,9 +768,10 @@ In that case, insert the number."
 ;; (prescient-persist-mode +1)
 
 
-;;*** `outshine' for code folding
+;; *** `outshine' for code folding
 ;; use super-/ for prefix than the clunky M-#
-(defvar outline-minor-mode-prefix (kbd "s-/"))
+(defvar my--ol-pfstring "s-/")
+(defvar outline-minor-mode-prefix (kbd my--ol-pfstring))
 
 (use-package outshine
   :after all-the-icons
@@ -776,7 +791,7 @@ In that case, insert the number."
   ;; enable outline-minor-mode for *ALL* programming buffers 
   (prog-mode . outshine-mode))
 
-;;*** `undo-tree' is a more intuitive way to navigate undo instead of linear traversal
+;; *** `undo-tree' is a more intuitive way to navigate undo instead of linear traversal
 (use-package undo-tree
   :straight t
   :blackout t
@@ -784,14 +799,14 @@ In that case, insert the number."
   :init (global-undo-tree-mode))
 
 
-;;*** `hercules' is a which-key based hydra
+;; *** `hercules' is a which-key based hydra
 (use-package hercules
   :commands
   (hercules-def))
 
-;;*** `free-keys' shows unbound keys
+;; *** `free-keys' shows unbound keys
 (use-package free-keys) 
-;;*** `selected'
+;; *** `selected'
 (use-package selected
   :ensure t
   :commands selected-minor-mode
@@ -801,16 +816,16 @@ In that case, insert the number."
               ("d" . downcase-region)
               ("w" . count-words-region)
               ("m" . apply-macro-to-region-lines)))
-;;** Themes
-;;*** install `poet-theme'
+;; ** Themes
+;; *** install `poet-theme'
 (use-package poet-theme
   :straight (:host github :repo "mbkamble/poet"))
 
-;;*** `page-break-lines' - render form-feed chars as horz lines
+;; *** `page-break-lines' - render form-feed chars as horz lines
 (use-package page-break-lines)
 
 
-;;*** `markdown-mode'
+;; *** `markdown-mode'
 (use-package markdown-mode
   :ensure t
   :commands (markdown-mode gfm-mode)
@@ -819,19 +834,19 @@ In that case, insert the number."
          ("\\.markdown\\'" . markdown-mode))
   :init (setq markdown-command "multimarkdown"))
 
-;;*** prettify symbols
+;; *** prettify symbols
 (add-hook 'prog-mode-hook #'prettify-symbols-mode)
 (add-hook 'prog-mode-hook (lambda () (setq indicate-buffer-boundaries 'left)))
 
-;;** Programming support
-;;*** `yaml-mode'
+;; ** Programming support
+;; *** `yaml-mode'
 (use-package yaml-mode
   :mode ("\\.yml\\'" . yaml-mode))
-;;*** `python-mode'
+;; *** `python-mode'
 (use-package python
   :ensure t)
 
-;;*** `cc-mode' provides major modes for C, C++, Objective-C, and Java
+;; *** `cc-mode' provides major modes for C, C++, Objective-C, and Java
 (use-feature cc-mode
   :load-path "straight/build/cc-mode/"
   :config
@@ -868,7 +883,7 @@ In that case, insert the number."
   
   (put 'c-default-style 'safe-local-variable #'stringp))
 
-;;*** `yasnippet' 
+;; *** `yasnippet' 
 (use-package yasnippet
   :straight t
   :config
@@ -886,17 +901,17 @@ In that case, insert the number."
   :defer t
   :config (yas-reload-all))
 
-;;*** `tiny' a template expander -- loopy alternative to yasnippet
+;; *** `tiny' a template expander -- loopy alternative to yasnippet
 (use-package tiny
   :defer t)
 
-;;*** `beancount' mode for accounting files
+;; *** `beancount' mode for accounting files
 (use-package beancount
   :straight (beancount
              :type git
              :host github
              :repo "cnsunyour/beancount.el")
-  :bind*
+  :bind
   ("C-c n" . #'beancount-goto-next-transaction)
   ;; there is no beancount-goto-prev-transaction, so backward-paragraph
   ;; is a reasonable alternative 
@@ -911,8 +926,8 @@ In that case, insert the number."
 
 
 
-;;** `orgmode' customization  
-;;*** `org-mode' itself 
+;; ** `orgmode' customization  
+;; *** `org-mode' itself 
 (use-package org
   :mode ("\\.org\\'" . org-mode)
   ;; :diminish org-indent-mode
@@ -922,6 +937,7 @@ In that case, insert the number."
   (require 'ox-html)
   (require 'ox-latex)
   (require 'ox-md)
+  (require 'org-element)
   (setq org-startup-indented t)
   (org-babel-do-load-languages
    'org-babel-load-languages
@@ -935,17 +951,20 @@ In that case, insert the number."
   (setq org-src-window-setup 'current-window)
   (setq org-agenda-window-setup 'current-window))
 
-;;*** `poporg' edit comment strings in a popout orgmode
+;; *** `ert-buffer-report' ERT Buffer Tests with human readable Org-mode reports
+(use-package ert-buffer-report)
+
+;; *** `poporg' edit comment strings in a popout orgmode
 (use-package poporg
   :commands (poporg-dwim)
   :bind ("C-x c" . poporg-dwim))
 
-;;*** `org-bullets'
+;; *** `org-bullets'
 ;; see https://mstempl.netlify.app/post/beautify-org-mode/ for techniques to beautify org rendering
 ;; (use-package org-bullets
 ;;   :hook (org-mode . org-bullets-mode))
 
-;;*** `org-superstar' prettify headings and lists
+;; *** `org-superstar' prettify headings and lists
 ;; This package is a direct descendant of ‘org-bullets’, with most of the code base completely rewritten
 (use-package org-superstar
   :config
@@ -960,11 +979,11 @@ In that case, insert the number."
       (org-superstar-toggle-lightweight-lists)))
   (org-superstar-mode))
 
-;;*** `ob-sync'
+;; *** `ob-sync'
 (use-package ob-async
   :defer 7.3)
 
-;;*** `org-ref'
+;; *** `org-ref'
 ;; (use-package org-ref
 ;;   :straight t
 ;;   :defer t
@@ -972,7 +991,7 @@ In that case, insert the number."
 ;;   (setq reftex-default-bibliography '("~/notes/roam/math.bib")
 ;;         org-ref-default-bibliography '("~/notes/roam/math.bib")))
 
-;;*** `org-roam' 
+;; *** `org-roam' 
 ;; (use-package org-roam
 ;;   :straight t
 ;;   ;; :ensure-system-package
@@ -1006,7 +1025,7 @@ In that case, insert the number."
 ;;                 :unnarrowed t)))
 ;;   (require 'org-roam-protocol))
 
-;;*** `org-roam-server'
+;; *** `org-roam-server'
 ;; (use-package org-roam-server
 ;;   :straight t
 ;;   :defer t
@@ -1021,18 +1040,18 @@ In that case, insert the number."
 ;;         org-roam-server-network-label-truncate-length 60
 ;;         org-roam-server-network-label-wrap-length 20))
 
-;;*** `htmlize' - Export to html with syntax highlighting
+;; *** `htmlize' - Export to html with syntax highlighting
 (use-package htmlize
   :defer t)
 
-;;*** configure `hydra' and load my-hydras 
+;; *** configure `hydra' and load my-hydras 
 (use-package hydra
   :defer 2.5)
 
 ;; (load "hydra-modal")
 ;; (load "my-hydras")
 
-;;*** unlock keepassxc DB from emacs using dbus
+;; *** unlock keepassxc DB from emacs using dbus
 ;; read file content into a string http://ergoemacs.org/emacs/elisp_read_file_content.html
 (defun get-string-from-file (filePath)
   "Return filePath's file content."
@@ -1073,7 +1092,7 @@ In that case, insert the number."
 		      "/keepassxc" "org.keepassxc.MainWindow" "openDatabase"
 		      kdbx pwd kdbx-sec)))
 
-;;*** resize your windows to the `golden-ratio'
+;; *** resize your windows to the `golden-ratio'
 ;; (http://pragmaticemacs.com/emacs/resize-your-windows-to-the-golden-ratio/)
 (use-package golden-ratio
   :ensure t
@@ -1081,7 +1100,7 @@ In that case, insert the number."
   :init
   (golden-ratio-mode 1))
 
-;;*** uniquify buffer names when visiting same basenames
+;; *** uniquify buffer names when visiting same basenames
 ;; https://github.com/bbatsov/prelude
 (require 'uniquify)
 (setq uniquify-buffer-name-style 'forward
@@ -1089,11 +1108,11 @@ In that case, insert the number."
       uniquify-after-kill-buffer-p t ; rename after killing uniquified
       uniquify-ignore-buffers-re "^\\*") ; don't muck with special buffers
 
-;;*** `uniquify-files' create uniq names when opening same-named project files
+;; *** `uniquify-files' create uniq names when opening same-named project files
 (use-package uniquify-files)
 
 
-;;*** Global
+;; *** Global
 (use-package popup-kill-ring
   :bind (("M-y" . popup-kill-ring)))
 
@@ -1102,7 +1121,7 @@ In that case, insert the number."
   :demand t
   :bind (("C-=" . er/expand-region)))
 
-;;*** `smartparens' handles paired punctuations The auhor recommends
+;; *** `smartparens' handles paired punctuations The auhor recommends
 ;; initialization using (require 'smartparens-config), but we want to
 ;; do so using use-package. Found the solution 
 ;; [[https://www.wisdomandwonder.com/article/9897/use-package-smartparens-config-ensure-smartparens][here]]
@@ -1124,7 +1143,7 @@ In that case, insert the number."
 ;; (defvar show-paren-delay 0)
 ;; (show-paren-mode t)
 
-;;*** `helpful' is an enhanced help
+;; *** `helpful' is an enhanced help
 (use-package helpful
   :bind
   ("C-h f" . #'helpful-callable)
@@ -1134,7 +1153,7 @@ In that case, insert the number."
   ("C-h C" . #'helpful-command) 	; override describe-coding-system
   )
 
-;;*** `ace-window' and `ace-link' 
+;; *** `ace-window' and `ace-link' 
 (use-package ace-window
   :custom
   (aw-keys '(?a ?o ?e ?u ?h ?t ?n ?s))
@@ -1144,7 +1163,7 @@ In that case, insert the number."
   :defer 4.1
   :config (ace-link-setup-default))
 
-;;*** `recently' for accessing recently visited files 
+;; *** `recently' for accessing recently visited files 
 (use-package recently
   :blackout t
   :custom
@@ -1173,7 +1192,7 @@ In that case, insert the number."
   :custom
   (avy-keys '(?a ?o ?e ?u ?h ?t ?n ?s)))
 
-;;*** `dired' 
+;; *** `dired' 
 (use-feature dired
   ;; :hook (dired-mode . dired-omit-mode)
   :bind (:map dired-mode-map
@@ -1185,7 +1204,7 @@ In that case, insert the number."
 	      ;; ("J" . dired-omit-mode)  ; don't know if this is useful
 	      ))
 
-;;*** `dired-x'
+;; *** `dired-x'
 (use-feature dired-x
   :after dired
   ;; :hook (dired-mode . dired-omit-mode)
@@ -1286,11 +1305,48 @@ In that case, insert the number."
   :after eshell
   :hook (eshell-mode . esh-autosuggest-mode))
 
-;;** my customization
+;; *** `ielm' customization
+;; created from https://emacs.stackexchange.com/questions/4221/remembering-history-between-sessions-in-inferior-emacs-lisp-mode
+(defvar ielm-comint-input-ring nil "global copy of the buffer-local comint-input-ring")
+(defun set-ielm-comint-input-ring ()
+  (add-hook 'kill-buffer-hook #'save-ielm-comint-input-ring 0 t)
+  (when ielm-comint-input-ring
+    (message "Restoring comint-input-ring...")
+    (setq comint-input-ring ielm-comint-input-ring)))
+(defun save-ielm-comint-input-ring ()
+  (message "Saving comint-input-ring...")
+  (setq ielm-comint-input-ring comint-input-ring))
+(use-package ielm
+  :hook
+  (inferior-emacs-lisp-mode . set-ielm-comint-input-ring))
+
+;; ** my customization
 (when (file-exists-p custom-file) (load custom-file))
+
+;; *** `buffer-display' customization
+;; display-buffer customization. Seems to be big topic based on info node Elisp->Windows->Disp Buffers
+;; there is even a subtopic called `the zen of buffer display'
+;; got the followig code from https://github.com/abo-abo/ace-window/wiki/display-buffer
+;; display-buffer will use existing window or choose using ac-window to display a buffer
+(setq display-buffer-base-action
+      '((display-buffer-reuse-window
+         ace-display-buffer)))
+;; Helm: don't use ace-display-buffer for helm window, use orig default instead
+;; Magit: Don’t allow magit-diff buffers to select the current window. This prevents accidentally covering up the COMMIT_MSG window.
+;; R/ESS: Revert ESS’s configuration of reusable-frames, so that we only pop up windows in the current frame.
+(add-to-list 'display-buffer-alist `(("\\*help\\[R" (display-buffer-reuse-mode-window
+                                             ace-display-buffer)
+                              (reusable-frames . nil))
+                             ("\\*R" nil (reusable-frames . nil))
+                             ,(cons "\\*helm" display-buffer-fallback-action)
+                             ("magit-diff:" nil
+                              (inhibit-same-window . t))))
 
 (setq
 
+ ;; Non-nil means buffers visiting files read-only do so in view mode.
+ view-read-only t
+ 
  ;; save frame realestate by not displaying calc-trail window
  calc-display-trail nil
 
@@ -1314,19 +1370,20 @@ In that case, insert the number."
 ;; |ace-window        | C-x o    | C-c w   |
 ;; |consult-buffer    | C-x b    | C-c u   |
 
-(bind-keys
- ;; :map default is global which is what we want
- ("C-c c" . kill-ring-save)
- ("C-c v" . yank)
- ("C-c s" . save-some-buffers) ; use . to save only current buffer, ! to save all. see info for other options
- ("C-c w" . ace-window)
- ("C-c u" . consult-buffer)
- )
+;; (bind-keys
+;;  ;; :map default is global which is what we want
+;;  ("C-c c" . kill-ring-save)
+;;  ("C-c v" . yank)
+;;  ("C-c s" . save-some-buffers) ; use . to save only current buffer, ! to save all. see info for other options
+;;  ("C-c w" . ace-window)
+;;  ("C-c u" . consult-buffer)
+;;  )
 
 ;; (global-set-key (kbd "TAB") 'self-insert-command)
 ;; (global-set-key (kbd "\C-c h") 'highlight-symbol-at-point)
 
-;; dired will open file or directory in existing buffer with key 'a'
+;; dired will open file or directory in existing buffer with key 'a' or 'RET'
+;; use ctrl-RET to open in new window
 (put 'dired-find-alternate-file 'disabled nil)
 (global-visual-line-mode)
 
@@ -1342,22 +1399,26 @@ In that case, insert the number."
   (tool-bar-mode -1)
   (scroll-bar-mode -1))
 
-(require 'my-ux) ;; my user interface
-(my-set-appearance)
-
+;; my user interface
+(and (require 'my-ux) (my-set-appearance))
+(require 'my-keybindings)
 (require 'my-utils)
 
 ;; need to load it after theme is loaded because ryo-modal-cursor-color is defined as defconst
 ;; and initialized to 'cursor background'. Before theme is loaded, this value is black and
 ;; after theme is loaded, it is #FFD5BE. If it takes black value, it disappears
-(load "my-ryo-modal")
+;; (load "my-ryo-modal")
 ;; we add some more hydratic bindings using hercules into ryo-modal-mode-map
-(load "my-hercules")
+;; (load "my-hercules")
 
 (add-to-list 'safe-local-variable-values
 	     '(eval add-hook 'after-save-hook
 		    (lambda () (org-babel-tangle))
 		    nil t))
+
+;; enable the function narrow-to-region.
+;; see info section 49.3.11 emacs->customization->key bindings->disabling
+(put 'narrow-to-region 'disabled nil)
 
 (setq
  gc-cons-threshold 100000000

@@ -170,6 +170,9 @@ line."
   (interactive "Mpackage/library: ")
   (message (find-library-name arg)))
 
+;;; use of dash filter function
+;; (-filter #'consp (-flatten (lookup-key outline-minor-mode-map outline-minor-mode-prefix)))
+
 
 ;; from https://emacs.stackexchange.com/questions/653/how-can-i-find-out-in-which-keymap-a-key-is-bound
 ;; How can I find out in which keymap a key is bound?
@@ -213,6 +216,8 @@ line."
 ;;         (wakib-key-binding key))))
 ;; '(define-key keymap (kbd "C-d") (wakib-dynamic-binding "C-c")))
 
+(require 'dash)
+
 (defun my--ispell-word-then-abbrev (p)
   "Call `ispell-word'. Then create an abbrev for the correction made.
 With prefix P, create local abbrev. Otherwise it will be global."
@@ -224,8 +229,8 @@ With prefix P, create local abbrev. Otherwise it will be global."
     (unless (string= after before)
       (define-abbrev
         (if p local-abbrev-table global-abbrev-table) before after))
-      (message "\"%s\" now expands to \"%s\" %sally."
-               before after (if p "loc" "glob"))))
+    (message "\"%s\" now expands to \"%s\" %sally."
+             before after (if p "loc" "glob"))))
 
 ;; (define-key ctl-x-map (kbd "C-i") 'ispell-word-then-abbrev)
 
@@ -235,7 +240,6 @@ With prefix P, create local abbrev. Otherwise it will be global."
 ;; using dash command to print (index, car) of each element of minor-mode-map-alist
 ;; similar to enumerate of python
 (defun my--enumerate-alist (alist)
-  (require 'dash)
   (let (l)
     (--each-indexed minor-mode-map-alist
       (push (list (car it) it-index) l))
@@ -247,6 +251,61 @@ With prefix P, create local abbrev. Otherwise it will be global."
 ;;     (--each-indexed minor-mode-map-alist
 ;;       (push (list (car it) it-index) l))
 ;;     (mapc (lambda (i) (princ i t)) l)))
+
+
+;; a utility to print bindings of all C-a, C-b,...C-Z and corresponding M- in any buffer
+(defun my--print-bindings (bufferstr modstr)
+  "print C- and M- bindings of all alpha (lower and upper case) keys"
+  (with-current-buffer bufferstr
+    (describe-key-briefly
+     (-map (lambda (c) (cons (kbd (format "%s%c" modstr c))
+			(kbd (format "%s%c" modstr c))))
+	   (number-sequence ?A ?z)))))
+
+;; print C- and M- bindings of a keymap (outline-mode-prefix-map)
+;; (let (el em)
+;;   (-each (number-sequence ?a ?z)
+;;     (lambda (x)
+;;       (push (format "C-%c %s" x
+;; 		    (lookup-key outline-mode-prefix-map
+;; 				(kbd (format "C-%c" x))))
+;; 	    el)
+;;       (push (format "M-%c %s" x
+;; 		    (lookup-key outline-mode-prefix-map
+;; 				(kbd (format "ESC %c" x))))
+;; 	    em)))
+;;   (append  (reverse el) (reverse em)))
+
+;; manipulate which-key-replacement-alist to eliminate display of certain keys eg. C-a to C-d
+;; which-key-replacement-alist is of the form : list of (MATCH CONS . REPLACEMENT)
+;; where each is (KEY REGEXP . BINDING REGEXP). if BINDING REGEXP is non-nil but not a cons, it is not displayd by which-key
+;; (setq my--wk-rep-alist which-key-replacement-alist) ; backup copy
+;; (setq which-key-replacement-alist (-snoc which-key-replacement-alist (cons (cons "C-[a-d]" nil) t)))
+;; (setq which-key-replacement-alist (-snoc which-key-replacement-alist '(("C-[a-d]" . nil) . t)))
+
+
+;; example of creating a sparse keymap with inheritence
+;; instead of using setq, we use define-prefix-command in the production version
+;; (setq my--ol-prefix-map
+;; 	(let ((map (make-sparse-keymap)))
+;; 	  (set-keymap-parent map outline-mode-prefix-map)
+;; 	  ;; for a-z bind a to what C-a binds and A to what M-a binds
+;; 	  (-each (number-sequence ?a ?z)
+;; 	    (lambda (x)
+;; 	      (bind-key (format "%c" x)
+;; 			(lookup-key map (kbd (format "C-%c" x))) map nil)
+;; 	      (bind-key (format "%c" (upcase x))
+;; 			(lookup-key map (kbd (format "M-%c" x))) map nil)))
+;; 	  map))
+
+;; I was erroneously using hercules-def to create a hercules for single-invocation commands and doing a topsy-turvy disabling of the hercules by defining hide-funs for all the commands!. We don't need hercules for that
+;; we can just bind the my--apps-map to a key and which key will display it
+;; (hercules-def
+;;  :show-funs #'my--apps-herc
+;;  :hide-funs (-keep (lambda (x) (and (listp x ) (cdr x))) (cdr (-flatten my--apps-map)))
+;;  :keymap 'my--apps-map
+;;  :flatten t
+;;  :transient t)
 
 (provide 'my-utils)
 
