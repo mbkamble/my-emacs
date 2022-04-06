@@ -1,4 +1,4 @@
-;; * Emacs initialization, customization from scratch        -*- lexical-binding: t; -*-
+;; ** Emacs initialization, customization from scratch        -*- lexical-binding: t; -*-
 ;; Copyright (C) 2021 by Milind Kamble
 
 ;; set this to enter debugger when we want to debug errors thrown by condition-case-unless-debug
@@ -6,7 +6,6 @@
 ;; (setq debug-on-error t)
 
 (setq disable-this-snippet t) 		; bypass experimental code
-(setq prefix-help-command #'embark-prefix-help-command)
 
 ;; done in early-init for emacs 27+
 (when (< emacs-major-version 27)
@@ -578,6 +577,10 @@ disable itself. Sad."
 ;; It's also the same API that `:bind' and similar keywords in
 ;; `use-package' use. (cf: radian.el)
 (require 'bind-key)
+;; *** `find-file-at-point' (ffap) is replacement for `find-file'
+(use-package ffap-
+  :config
+  (ffap-bindings))
 ;; *** `crux' Collection of Ridiculously Useful eXtensions for Emacs
 (use-package crux)
 ;; *** `no-littering' - keep files inside user-emacs-directory 
@@ -617,7 +620,7 @@ disable itself. Sad."
   ;; :bind
   ;; ("C-x C-r" . #'recentf-open-files)
   :custom
-  (recentf-max-saved-items 100)
+  (recentf-max-saved-items 1000)
   (recentf-max-menu-items 20)
   (recentf-auto-cleanup 'never)
   (recentf-keep '(file-remote-p file-readable-p)))
@@ -768,11 +771,36 @@ disable itself. Sad."
 ;; (prescient-persist-mode +1)
 
 
-;; *** `outshine' for code folding
+;; *** `hideshow' and `outshine' for code folding
+;; hideshow does hide and show of `blocks'. It works in all major mode without needing any explicit markers, which is great.
+;; outshine is an extension of outline-minor-mode and thus need well-formatted headings (comment-space-stars)
+;; both can coexist.
+;;  picked up the hs-set-up-overlay from hideshow.el source code (/usr/share/emacs/27.2/lisp/progmodes/hideshow.el.gz)
+(use-package hideshow
+  :config
+  (setq hs-set-up-overlay
+	(defun my-display-code-line-counts (ov)
+          (when (eq 'code (overlay-get ov 'hs))
+            (overlay-put ov 'display
+                         (propertize
+                          (format " ... <%d>"
+                                  (count-lines (overlay-start ov)
+                                               (overlay-end ov)))
+                          'face 'font-lock-type-face)))))
+  :hook
+  (prog-mode . hs-minor-mode)
+  )
+(use-package hideshow-org
+  :init
+  (setq hs-org/trigger-keys-block (list [C-tab]))
+  (setq hs-org/trigger-keys-all nil)
+  :hook
+  (hs-minor-mode . hs-org/minor-mode))
+
+
 ;; use super-/ for prefix than the clunky M-#
 (defvar my--ol-pfstring "s-/")
 (defvar outline-minor-mode-prefix (kbd my--ol-pfstring))
-
 (use-package outshine
   :after all-the-icons
   ;; :blackout " Oshine"
@@ -790,6 +818,7 @@ disable itself. Sad."
   :hook
   ;; enable outline-minor-mode for *ALL* programming buffers 
   (prog-mode . outshine-mode))
+
 
 ;; *** `undo-tree' is a more intuitive way to navigate undo instead of linear traversal
 (use-package undo-tree
@@ -839,6 +868,21 @@ disable itself. Sad."
 (add-hook 'prog-mode-hook (lambda () (setq indicate-buffer-boundaries 'left)))
 
 ;; ** Programming support
+;; *** `lsp-mode' language server protocol
+;; see https://github.com/mattduck/dotfiles/blob/master/emacs.d.symlink/init.org#lsp-base-packages
+(use-package lsp-mode
+  :init
+  (setq lsp-keymap-prefix "C-c l")
+  :config
+  (lsp-register-custom-settings
+   '(("pyls.plugins.pyls_mypy.enabled" t t)
+     ("pyls.plugins.pyls_isort.enabled" t t)))
+  :hook
+  (python-mode . lsp-deferred)
+  (lsp-mode . lsp-enable-which-key-integration)
+  :commands lsp lsp-deferred)
+(use-package lsp-ui :commands lsp-ui-mode)
+
 ;; *** `yaml-mode'
 (use-package yaml-mode
   :mode ("\\.yml\\'" . yaml-mode))
@@ -906,23 +950,40 @@ disable itself. Sad."
   :defer t)
 
 ;; *** `beancount' mode for accounting files
+(with-eval-after-load (blackout 'abbrev-mode (concat " " (all-the-icons-material "code"))))
 (use-package beancount
   :straight (beancount
              :type git
              :host github
              :repo "cnsunyour/beancount.el")
+  :custom
+  (beancount-use-ido nil)
   :bind
-  ("C-c n" . #'beancount-goto-next-transaction)
-  ;; there is no beancount-goto-prev-transaction, so backward-paragraph
-  ;; is a reasonable alternative 
-  ("C-c p" . #'backward-paragraph)
+  (:map beancount-mode-map
+	("C-c C-f" . #'beancount-goto-next-transaction)
+	;; there is no beancount-goto-prev-transaction, so backward-paragraph
+	;; is a reasonable alternative 
+	)
+  :hook
+  ((beancount-mode . abbrev-mode)
+   (beancount-mode . outshine-mode))
   :mode
   ("\\.bean\\(?:count\\)?\\'" . beancount-mode)
   :config
+  ;; lets use , as a word element, so that we can use comma-seperated string
+  ;; as abbrev for account names
+  (modify-syntax-entry ?\, "w" beancount-mode-syntax-table)
+  ;; register "account_balance_wallet" as an icon for beancount-mode
+  (add-to-list 'all-the-icons-mode-icon-alist
+	       '(beancount-mode all-the-icons-material
+				"account_balance_wallet"
+				:face all-the-icons-green))
   (setq beancount-accounts-files
         (directory-files "~/docs/account_books/"
                          'full
-                         (rx (or ".beancount" ".bc") eos))))
+                         ;; (rx (or ".beancount" ".bc") eos)
+			 (rx "2020.beancount")
+			 )))
 
 
 
@@ -1323,27 +1384,33 @@ disable itself. Sad."
 ;; ** my customization
 (when (file-exists-p custom-file) (load custom-file))
 
+;; perform yasnippet expansion using hippie expand
+(add-to-list 'hippie-expand-try-functions-list #'yas-hippie-try-expand)
+
 ;; *** `buffer-display' customization
 ;; display-buffer customization. Seems to be big topic based on info node Elisp->Windows->Disp Buffers
 ;; there is even a subtopic called `the zen of buffer display'
 ;; got the followig code from https://github.com/abo-abo/ace-window/wiki/display-buffer
 ;; display-buffer will use existing window or choose using ac-window to display a buffer
-(setq display-buffer-base-action
-      '((display-buffer-reuse-window
-         ace-display-buffer)))
+;; (setq display-buffer-base-action
+;;       '((display-buffer-reuse-window
+;;          ace-display-buffer)))
 ;; Helm: don't use ace-display-buffer for helm window, use orig default instead
 ;; Magit: Don’t allow magit-diff buffers to select the current window. This prevents accidentally covering up the COMMIT_MSG window.
 ;; R/ESS: Revert ESS’s configuration of reusable-frames, so that we only pop up windows in the current frame.
-(add-to-list 'display-buffer-alist `(("\\*help\\[R" (display-buffer-reuse-mode-window
-                                             ace-display-buffer)
-                              (reusable-frames . nil))
-                             ("\\*R" nil (reusable-frames . nil))
-                             ,(cons "\\*helm" display-buffer-fallback-action)
-                             ("magit-diff:" nil
-                              (inhibit-same-window . t))))
+;; (add-to-list 'display-buffer-alist `(("\\*help\\[R" (display-buffer-reuse-mode-window
+;;                                              ace-display-buffer)
+;;                               (reusable-frames . nil))
+;;                              ("\\*R" nil (reusable-frames . nil))
+;;                              ,(cons "\\*helm" display-buffer-fallback-action)
+;;                              ("magit-diff:" nil
+;;                               (inhibit-same-window . t))))
 
 (setq
 
+ ;; visiting a file uses its truename as the visited-file name
+ find-file-visit-truename t
+ 
  ;; Non-nil means buffers visiting files read-only do so in view mode.
  view-read-only t
  

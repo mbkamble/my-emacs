@@ -1,13 +1,13 @@
-;;* My hercules definitions          -*- lexical-binding: t; -*-
-
+;; * My hercules definitions          -*- lexical-binding: t; -*-
 (require 'dash)
-(hercules-def
- ;; read further to see why this works
- :toggle-funs #'org-babel-mode
- :keymap 'org-babel-map
- :transient t)
-;; tweak binding to taste
-;; (define-key org-mode-map (kbd "C-c t") #'org-babel-mode)
+(if t 
+  nil
+  (hercules-def
+   :toggle-funs #'org-babel-mode ; this minor-mode doesn't exist. we are creating one
+   :keymap 'org-babel-map
+   :transient t)
+  ;; tweak binding to taste
+  (define-key org-mode-map (kbd "C-c C-v") #'org-babel-mode))
 
 ;; (hercules-def
 ;;  :toggle-funs #'any-name
@@ -24,41 +24,51 @@
 ;; those commands that are not specified in hide-funs list, will execute and keep the popup so that we can deliver same or other commands from that keymap
 ;; FLATTEN will flatten the keymap recursively thru its sub keymaps
 
-(hercules-def
- :show-funs #'my-search-map-nav
- ;; almost all funs in the search-map are user interactive (taking user input from minibuffer to get their args) functions.
- ;; So we progamatically flatten the keymap and extract the target commands which sit at the cdr cell of each list-item of the keymap
- :hide-funs (-keep (lambda (x) (and (listp x ) (cdr x))) (cdr (-flatten search-map)))
- :keymap 'search-map
- :flatten t
- :transient t
- )
-(bind-key "s" #'my-search-map-nav 'ryo-modal-mode-map)
+(if t nil 				; disablecode
+  (hercules-def
+   :show-funs #'my-search-map-herc
+   ;; almost all funs in the search-map are user interactive (taking user input from minibuffer to get their args) functions.
+   ;; So we progamatically flatten the keymap and extract the target commands which sit at the cdr cell of each list-item of the keymap
+   :hide-funs (-keep (lambda (x) (and (listp x ) (cdr x))) (cdr (-flatten search-map)))
+   :keymap 'search-map
+   :flatten t
+   :transient t
+   )
+  (bind-key "p s" #'my-search-map-herc 'ryo-modal-mode-map)
 
-(hercules-def
- :show-funs #'my-goto-map-nav
- :hide-funs '(goto-char consult-goto-line move-to-column consult-outline)
- :keymap 'goto-map
- :transient t)
-(bind-key "c" #'my-goto-map-nav 'ryo-modal-mode-map)
+  (hercules-def
+   :show-funs #'my-goto-map-nav
+   :hide-funs '(goto-char consult-goto-line move-to-column consult-outline)
+   :keymap 'goto-map
+   :transient t)
+  (bind-key "p g" #'my-goto-map-nav 'ryo-modal-mode-map)
 
-;; create our own map for outshine and outline minor modes
-(setq my-outline-nav-map (make-sparse-keymap))
-(bind-keys :map my-outline-nav-map
-	   ("S" . outline-show-all)
-	   ("u" . outline-up-heading)
-	   ("f" . outline-forward-same-level)
-	   ("b" . outline-backward-same-level)
-	   ("n" . outline-next-visible-heading)
-	   ("p" . outline-previous-visible-heading)
-	   ("RET" . outline-insert-heading)
-	   ("q" . nil))
-(hercules-def
- :show-funs #'my-outline-nav
- :hide-funs '(outline-insert-heading)
- :keymap 'my-outline-nav-map
- :flatten t
- :transient t
- )
-(bind-key "f" #'my-outline-nav 'ryo-modal-mode-map)
-;; (define-key ryo-modal-mode-map "f" my-outline-nav-map)
+  ;; create our own map for outshine and outline minor modes
+  (setq my-outline-nav-map (make-sparse-keymap))
+  (bind-keys :map my-outline-nav-map
+	     ("S" . outline-show-all)
+	     ("u" . outline-up-heading)
+	     ("f" . outline-forward-same-level)
+	     ("b" . outline-backward-same-level)
+	     ("n" . outline-next-visible-heading)
+	     ("p" . outline-previous-visible-heading)
+	     ("RET" . outline-insert-heading)
+	     ("q" . nil))
+  (hercules-def
+   :show-funs #'my-outline-nav
+   :hide-funs '(outline-insert-heading)
+   :keymap 'my-outline-nav-map
+   :flatten t
+   :transient t
+   )
+  (bind-key "f" #'my-outline-nav 'ryo-modal-mode-map)
+  ;; (define-key ryo-modal-mode-map "f" my-outline-nav-map)
+
+  (hercules-def
+   :show-funs '(my-outl-nav outline-forward-same-level outline-backward-same-level outline-up-heading)
+   :keymap 'outline-mode-prefix-map
+   :transient t)
+  (bind-key  "M-p" #'my-outl-nav)
+  (bind-key "f" #'my-outl-nav 'ryo-modal-mode-map)
+
+  ) 					; if disablecode

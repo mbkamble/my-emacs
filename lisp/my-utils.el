@@ -170,6 +170,53 @@ line."
   (interactive "Mpackage/library: ")
   (message (find-library-name arg)))
 
+
+;; Function to check if a packages exist in the load path. This may be used to preempt the installation of ELPA versions of packages whose source may already be found in the load path.
+;; source: http://eschulte.github.io/emacs24-starter-kit/
+(defun starter-kit-loadable-p (package)
+  "Check if PACKAGE is loadable from a directory in `load-path'."
+  (let ((load-file (concat (symbol-name package) ".el")))
+    (catch 'file-found
+      (dolist (dir load-path)
+        (let ((path (expand-file-name load-file dir)))
+          (when (file-exists-p path)
+            (throw 'file-found path)))))))
+
+;; Ubiquitous Packages which should be loaded on startup rather than autoloaded on demand since they are likely to be used in every session.
+;; source: http://eschulte.github.io/emacs24-starter-kit/
+;; (require 'cl)
+;; (require 'cl-lib)
+;; (require 'saveplace)
+;; (require 'ffap)
+;; (require 'uniquify)
+;; (require 'ansi-color)
+;; (require 'recentf)
+
+;; from: https://www.emacswiki.org/emacs/basic-edit-toolkit.el
+;; (defun kill-syntax-forward (&optional arg)
+;;   "Kill ARG set of syntax characters after point."
+;;   (interactive "p")
+;;   (let ((arg (or arg 1))
+;;         (inc (if (and arg (< arg 0)) 1 -1))
+;;         (opoint (point)))
+;;     (while (or                          ;(not (= arg 0)) ;; This condition is implied.
+;;             (and (> arg 0) (not (eobp)))
+;;             (and (< arg 0) (not (bobp))))
+;;       (if (> arg 0)
+;;           (skip-syntax-forward (string (char-syntax (char-after))))
+;;         (skip-syntax-backward (string (char-syntax (char-before)))))
+;;       (setq arg (+ arg inc)))
+;;     (if (and (> arg 0) (eobp))
+;;         (message "End of buffer"))
+;;     (if (and (< arg 0) (bobp))
+;;         (message "Beginning of buffer"))
+;;     (kill-region opoint (point))))
+
+;; (defun kill-syntax-backward (&optional arg)
+;;   "Kill ARG set of syntax characters preceding point."
+;;   (interactive "p")
+;;   (kill-syntax-forward (- 0 (or arg 1))))
+
 ;;; use of dash filter function
 ;; (-filter #'consp (-flatten (lookup-key outline-minor-mode-map outline-minor-mode-prefix)))
 

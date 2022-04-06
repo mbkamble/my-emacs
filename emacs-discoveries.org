@@ -28,6 +28,7 @@
     compiling code
     listing errors
 ;; https://emacsconf.org/2020/talks/
+;; https://with-emacs.com/archive.html -- good blog about emacs
 ** Emacs keybinding conventions
 - Don’t define C-c letter as a key in Lisp programs. Sequences consisting of C-c and a letter (either upper or lower case) are reserved for users; they are the only sequences reserved for users, so do not block them.
 - Changing all the Emacs major modes to respect this convention was a lot of work; abandoning this convention would make that work go to waste, and inconvenience users. Please comply with it.
@@ -145,10 +146,64 @@ https://stackoverflow.com/questions/683425/globally-override-key-binding-in-emac
 - C-x r U : undo-tree-restore-state-from-register
 ** Input methods
 We can change input method by C-x <RET> C-\ METHOD <RET>. There are four different devnagri input methods.
-** C-. triggers embark-act (embark action)
+** Embark minor mode (C-.)
+- ~C-.~ triggers embark-act (embark action)
+** Orgmode
+*** Table
+- S-RET in an empty cell copies value from below or previous column
+- S-RET in a non-empty cell copies its value to value below. But if current and prev row are non-empty, copies the sum to the cell below. Use C-u 0 S-RET to prevent the summation
+- see programming/elisp/orgtblstring-to-nestedlist.el to see how to use ~org-element-map~ and ~org-element-contents~ to parse a string into an elisp datastructure of nested lists
+** Magit
+- Adding a specific file to repo for firsttime: visit file and do ~M-x magit-stage-file~
+- [[https://emacs.stackexchange.com/questions/63108/how-to-use-magit-to-git-log-git-grep-to-find-expressions-across-all-previous-c][Find commit using regex on log or patch]]
 ** Syntax elements in content
 - char, word, sentence, sexp
 - line, paragraph, function, comment, page
 - back to indentation (M-m)
 - goto-line : char, line, error and friends
 - 
+** Highlight cursor line
+#+BEGIN_SRC emacs-lisp
+  (global-hl-line-mode +1)
+#+END_SRC
+** Highlight pair of delimiters under cursor
+#+BEGIN_SRC emacs-lisp
+  (show-paren-mode 1)
+  (setq show-paren-delay 0)
+#+END_SRC
+** Add auto completion to Geiser
+#+BEGIN_SRC emacs-lisp
+  (ac-config-default) ;; mbk: builtin auto completion?
+  (require 'ac-geiser)
+  (add-hook 'geiser-mode-hook 'ac-geiser-setup)
+  (add-hook 'geiser-repl-mode-hook 'ac-geiser-setup)
+  (eval-after-load "auto-complete"
+    (add-to-list 'ac-modes 'geiser-repl-mode))
+#+END_SRC
+** Paredit
+#+BEGIN_SRC emacs-lisp
+  (require 'paredit)
+  ((autoload function "filename" "docstring" interactive type) 'enable-paredit-mode "paredit" "Turn on pseudo-structural editing of lisp code" t)
+  (add-hook 'scheme-mode-hook #'enable-paredit-mode)
+#+END_SRC
+** Edit several strings of characters in same way simultaneously
+#+BEGIN_SRC emacs-lisp
+  (require 'iedit') ; C-; on a word to edit all its occurences, C-0 C-; to edit all occurences of a word in region
+#+END_SRC
+** Edit several places simultaneously
+#+BEGIN_SRC emacs-lisp
+  (require 'multiple-cursors) ; finish editing with  C-g
+  (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+  (global-set-key (kbd "C->") 'mc/mark-next-like-this)
+  (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+  (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+#+END_SRC
+** Extract variables and functions
+#+BEGIN_SRC emacs-lisp
+  (require 'emr)
+  (autoload 'emr-show-refactor-menu "emr")
+  (define-key prog-mode-map (kbd "M-RET") 'emr-show-refactor-menu)
+  (eval-after-load "emr" '(emr-intialize))
+  (global-set-key (kbd "M-v") 'emr-scm-extract-variable)
+  (global-set-key (kbd "M-f") 'emr-scm-extract-function)
+#+END_SRC
